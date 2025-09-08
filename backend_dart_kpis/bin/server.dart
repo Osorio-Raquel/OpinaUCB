@@ -40,9 +40,12 @@ Future<void> main() async {
   );
   print('HTTP escuchando en http://0.0.0.0:$port');
 
-  // 2) Adjunta Socket.IO al mismo server y path fijo
+   // 2) Envuelve ese HttpServer en un IOServer (StreamServer de shelf)
+  final streamServer = shelf_io.IOServer(httpServer); // 👈 clave
+
+  // 3) Adjunta Socket.IO al mismo puerto con path fijo
   final sioServer = sio.Server();
-  sioServer.attach(httpServer, {'path': '/socket.io/'});
+  sioServer.attach(streamServer, {'path': '/socket.io/'});  // 👈 ahora sí
   initRealtime(sioServer);
 
   print('WS listo en /socket.io/');

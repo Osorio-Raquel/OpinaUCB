@@ -62,16 +62,10 @@ class FormularioInput {
 
 Future<void> insertarRespuesta(FormularioInput input) async {
   try {
-    // Inserta; si hay error, supabase lanzará PostgrestException
+    
     await supabase.from('respuestas_formulario').insert(input.toRow());
 
-    // Si quisieras el registro insertado, usa:
-    // final inserted = await supabase
-    //   .from('respuestas_formulario')
-    //   .insert(input.toRow())
-    //   .select()
-    //   .single();
-    // print(inserted);
+  
   } on PostgrestException catch (e) {
     // error legible de la API
     throw Exception('Supabase insert error: ${e.message}');
