@@ -6,6 +6,6 @@ Router buildFormularioRouter() {
   // con slash
   r.post('/', crearRespuesta);
   // sin slash (aceptamos ambos para evitar 307)
-  r.post('', crearRespuesta);
+ 
   return r;
 }

@@ -4,7 +4,7 @@ import '../controllers/kpi_controller.dart';
 Router buildKpiRouter() {
   final r = Router();
   r.get('/', obtenerKPIsController);
-  r.get('', obtenerKPIsController);
+ 
   return r;
 }
 
