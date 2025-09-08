@@ -5,8 +5,9 @@ from ..sockets.realtime import emitir_kpis
 
 router = APIRouter(prefix="/api/formulario", tags=["Formulario"])
 
-@router.post("/")
+@router.post("/", include_in_schema=True)   # con slash
+@router.post("",  include_in_schema=False)  # sin slash
 async def crear_respuesta(data: RespuestaFormulario):
-    r = await insertar_respuesta(data)
+    await insertar_respuesta(data)
     await emitir_kpis()
-    return {"ok": True, "data": r}
+    return {"ok": True}

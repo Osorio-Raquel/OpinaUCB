@@ -1,15 +1,12 @@
 import socketio
-from fastapi import FastAPI
 from ..services.kpi_service import obtener_kpis
 
-sio = socketio.AsyncServer(cors_allowed_origins="*")
-socket_app = socketio.ASGIApp(sio)
+# importante: async_mode='asgi' y CORS abierto en dev
+sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi")
 
 async def emitir_kpis():
-    kpis = await obtener_kpis()
-    await sio.emit("metric:update", kpis)
+    await sio.emit("metric:update", await obtener_kpis())
 
 @sio.event
 async def connect(sid, environ):
-    print("🔌 Cliente conectado:", sid)
     await emitir_kpis()

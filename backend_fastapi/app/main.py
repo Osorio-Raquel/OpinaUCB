@@ -1,16 +1,15 @@
+import socketio
 from fastapi import FastAPI
 from .routes import formulario, kpi
-from .sockets.realtime import socket_app
+from .sockets.realtime import sio
 
-app = FastAPI(
-    title="API Formularios KPIs - FastAPI",
-    version="1.0.0"
+_fastapi = FastAPI(title="API Formularios KPIs - FastAPI", version="1.0.0")
+_fastapi.include_router(formulario.router)
+_fastapi.include_router(kpi.router)
+
+# Monta Socket.IO en /socket.io/ explícito
+app = socketio.ASGIApp(
+    sio,
+    other_asgi_app=_fastapi,
+    socketio_path="/socket.io/"
 )
-
-app.include_router(formulario.router)
-app.include_router(kpi.router)
-
-# Montamos el socket.io server
-import uvicorn
-if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=3000, reload=True)
