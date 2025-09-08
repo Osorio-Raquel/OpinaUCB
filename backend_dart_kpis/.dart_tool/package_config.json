@@ -422,7 +422,7 @@
       "languageVersion": "3.0"
     },
     {
-      "name": "backend_dart",
+      "name": "backend_dart_kpis",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.0"
