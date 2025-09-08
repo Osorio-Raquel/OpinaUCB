@@ -31,22 +31,20 @@ Future<void> main() async {
       }))
       .addHandler(router);
 
-  // 1) Levanta Shelf y espera el HttpServer
   final httpServer = await shelf_io.serve(
-    handler,
-    InternetAddress.anyIPv4,
-    port,
-    poweredByHeader: null, // opcional, quita 'shelf'
-  );
-  print('HTTP escuchando en http://0.0.0.0:$port');
+  handler,
+  InternetAddress.anyIPv4,
+  port,
+  poweredByHeader: null,
+);
+print('HTTP escuchando en http://0.0.0.0:$port');
 
-   // 2) Envuelve ese HttpServer en un IOServer (StreamServer de shelf)
-  final streamServer = shelf_io.IOServer(httpServer); // 👈 clave
+// WS en 3001
+final wsPort = port + 1;
+final sioServer = sio.Server();
+sioServer.listen(wsPort, {'path': '/socket.io/'}); 
+initRealtime(sioServer);
 
-  // 3) Adjunta Socket.IO al mismo puerto con path fijo
-  final sioServer = sio.Server();
-  sioServer.attach(streamServer, {'path': '/socket.io/'});  // 👈 ahora sí
-  initRealtime(sioServer);
+print('WS escuchando en http://0.0.0.0:$wsPort/socket.io/');
 
-  print('WS listo en /socket.io/');
 }
