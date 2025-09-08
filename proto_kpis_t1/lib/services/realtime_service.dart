@@ -20,7 +20,7 @@ class RealtimeService {
     //);
     //ws fastapi
     _socket = IO.io(
-  backendBase,
+  backendWsBase,
   IO.OptionBuilder()
     .setTransports(['websocket', 'polling']) // permite upgrade
     .setPath('/socket.io/')                  // <-- MUY IMPORTANTE

@@ -5,7 +5,7 @@ import '../config.dart';
 import '../models/kpi.dart';
 
 class ApiService {
-  final _base = backendBase;
+  final _base = backendHttpBase;
 
   Future<bool> enviarFormulario({
     String? usuarioId,
