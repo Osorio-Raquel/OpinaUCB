@@ -1,122 +1,319 @@
 import 'package:flutter/material.dart';
+import 'models/kpi.dart';
+import 'services/api_service.dart';
+import 'services/realtime_service.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProtoApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class ProtoApp extends StatelessWidget {
+  const ProtoApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Prototipo KPIs T1',
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
+      home: const HomeTabs(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomeTabs extends StatefulWidget {
+  const HomeTabs({super.key});
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeTabs> createState() => _HomeTabsState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomeTabsState extends State<HomeTabs> with TickerProviderStateMixin {
+  late final TabController _controller;
+  final rt = RealtimeService();
+  KPIsBundle? _kpis;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  @override
+  void initState() {
+    super.initState();
+    _controller = TabController(length: 2, vsync: this);
+
+    // Conectar WS y escuchar KPIs
+    rt.connect(onKPIs: (k) {
+      setState(() => _kpis = k);
+    });
+
+    // Cargar fallback inicial por HTTP (en caso de que el WS tarde)
+    ApiService().getKPIs().then((k) {
+      if (mounted && _kpis == null && k != null) setState(() => _kpis = k);
     });
   }
 
   @override
+  void dispose() {
+    rt.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final tabs = [
+      const Tab(text: 'Formulario'),
+      const Tab(text: 'Dashboard'),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Tarea 1: Flutter + Node + Supabase'),
+        bottom: TabBar(controller: _controller, tabs: tabs),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: TabBarView(
+        controller: _controller,
+        children: [
+          FormularioScreen(
+            onSubmitted: () async {
+              // Al enviar, el backend emite nuevas KPIs por WS automáticamente
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Enviado')),
+              );
+            },
+          ),
+          DashboardScreen(kpis: _kpis),
+        ],
+      ),
+    );
+  }
+}
+
+class FormularioScreen extends StatefulWidget {
+  final VoidCallback? onSubmitted;
+  const FormularioScreen({super.key, this.onSubmitted});
+
+  @override
+  State<FormularioScreen> createState() => _FormularioScreenState();
+}
+
+class _FormularioScreenState extends State<FormularioScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _categorias = const ['Docentes', 'Infraestructura', 'Servicios', 'Administración'];
+  String _categoria = 'Docentes';
+  int _satisfaccion = 3;
+  String? _comentario;
+  String? _genero;
+  String? _ciudad;
+  int? _edad;
+  String? _recomendar;
+
+  bool _loading = false;
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+    setState(() => _loading = true);
+
+    final ok = await ApiService().enviarFormulario(
+      categoria: _categoria,
+      satisfaccion: _satisfaccion,
+      comentario: _comentario,
+      genero: _genero,
+      ciudad: _ciudad,
+      edad: _edad,
+      recomendar: _recomendar,
+      calidadServicio: null, // si quieres lo puedes pedir también
+    );
+
+    setState(() => _loading = false);
+    if (ok) {
+      widget.onSubmitted?.call();
+      _formKey.currentState!.reset();
+      setState(() {
+        _categoria = 'Docentes';
+        _satisfaccion = 3;
+        _comentario = null;
+        _genero = null;
+        _ciudad = null;
+        _edad = null;
+        _recomendar = null;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al enviar')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spacing = 12.0;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          children: [
+            DropdownButtonFormField<String>(
+              value: _categoria,
+              decoration: const InputDecoration(labelText: 'Categoría', border: OutlineInputBorder()),
+              items: _categorias.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+            ),
+            SizedBox(height: spacing),
+            InputDecorator(
+              decoration: const InputDecoration(labelText: 'Satisfacción (1–5)', border: OutlineInputBorder()),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Slider(
+                      value: _satisfaccion.toDouble(),
+                      min: 1,
+                      max: 5,
+                      divisions: 4,
+                      label: '$_satisfaccion',
+                      onChanged: (v) => setState(() => _satisfaccion = v.toInt()),
+                    ),
+                  ),
+                  Text('$_satisfaccion'),
+                ],
+              ),
+            ),
+            SizedBox(height: spacing),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Comentario (opcional)', border: OutlineInputBorder()),
+              maxLines: 3,
+              onSaved: (v) => _comentario = (v?.trim().isEmpty ?? true) ? null : v!.trim(),
+            ),
+            SizedBox(height: spacing),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Ciudad (opcional)', border: OutlineInputBorder()),
+              onSaved: (v) => _ciudad = (v?.trim().isEmpty ?? true) ? null : v!.trim(),
+            ),
+            SizedBox(height: spacing),
+            DropdownButtonFormField<String>(
+              value: _genero,
+              decoration: const InputDecoration(labelText: 'Género (opcional)', border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
+                DropdownMenuItem(value: 'Femenino', child: Text('Femenino')),
+                DropdownMenuItem(value: 'Otro', child: Text('Otro')),
+              ],
+              onChanged: (v) => setState(() => _genero = v),
+            ),
+            SizedBox(height: spacing),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Edad (opcional)', border: OutlineInputBorder()),
+              keyboardType: TextInputType.number,
+              onSaved: (v) {
+                final t = v?.trim();
+                _edad = (t == null || t.isEmpty) ? null : int.tryParse(t);
+              },
+            ),
+            SizedBox(height: spacing),
+            DropdownButtonFormField<String>(
+              value: _recomendar,
+              decoration: const InputDecoration(labelText: '¿Recomendaría? (opcional)', border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'Sí', child: Text('Sí')),
+                DropdownMenuItem(value: 'No', child: Text('No')),
+              ],
+              onChanged: (v) => setState(() => _recomendar = v),
+            ),
+            SizedBox(height: spacing),
+            FilledButton.icon(
+              onPressed: _loading ? null : _submit,
+              icon: _loading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
+              label: const Text('Enviar'),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class DashboardScreen extends StatelessWidget {
+  final KPIsBundle? kpis;
+  const DashboardScreen({super.key, this.kpis});
+
+  @override
+  Widget build(BuildContext context) {
+    if (kpis == null) {
+      return const Center(child: Text('Cargando KPIs...'));
+    }
+
+    final g = kpis!.global;
+    final cats = kpis!.categorias;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('KPIs en tiempo real', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(child: _KpiCard(title: 'Total respuestas', value: '${g.total}')),
+            const SizedBox(width: 12),
+            Expanded(child: _KpiCard(title: 'Promedio global', value: g.promedio.toStringAsFixed(2))),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Text('Promedio por categoría', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 240,
+          child: BarChart(
+            BarChartData(
+              gridData: const FlGridData(show: true),
+              titlesData: FlTitlesData(
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 42,
+                    getTitlesWidget: (value, meta) {
+                      final i = value.toInt();
+                      if (i < 0 || i >= cats.length) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          cats[i].categoria,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 32)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              barGroups: List.generate(cats.length, (i) {
+                final y = cats[i].promedioSatisfaccion;
+                return BarChartGroupData(
+                  x: i,
+                  barRods: [BarChartRodData(toY: y, width: 18)],
+                );
+              }),
+              minY: 0,
+              maxY: 5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _KpiCard extends StatelessWidget {
+  final String title;
+  final String value;
+  const _KpiCard({required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        title: Text(title),
+        trailing: Text(value, style: Theme.of(context).textTheme.headlineSmall),
+      ),
     );
   }
 }
