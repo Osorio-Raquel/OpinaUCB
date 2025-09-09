@@ -10,12 +10,13 @@ class RealtimeService {
 
   void connect({KPICallback? onKPIs}) {
     _socket = IO.io(
-      backendBase,
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .enableReconnection()
-          .build(),
-    );
+  backendBase,
+  IO.OptionBuilder()
+    .setTransports(['websocket', 'polling']) // permite upgrade
+    .setPath('/socket.io/')                  // <-- MUY IMPORTANTE
+    .enableReconnection()
+    .build(),
+);
 
     _socket!.onConnect((_) {
       // Conexión lista; el server envía snapshot inicial en 'metric:update'
