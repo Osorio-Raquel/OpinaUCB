@@ -7,5 +7,6 @@
 //
 // apirest, node const String backendBase = 'http://10.0.2.2:3000';
 // Emulador Android: tu PC = 10.0.2.2
-const String backendBase = 'http://10.0.2.2:3000';
+//const String backendBase = 'http://10.0.2.2:3000';//LOCAL
+const String backendBase = 'https://e586867645b4.ngrok-free.app';
 
