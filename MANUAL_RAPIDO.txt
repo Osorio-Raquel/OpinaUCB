@@ -1,0 +1,248 @@
+# MANUAL_RAPIDO.txt
+
+====================================================
+0) VARIABLES DE ENTORNO (.env en CADA backend)
+====================================================
+PORT=3000
+CORS_ORIGIN=*
+SUPABASE_URL=https://<tu-proyecto>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+Nota:
+- Cuando uses ngrok en el cel, reemplaza CORS_ORIGIN por la URL https pública (o varias separadas por coma).
+
+Endpoints (recomendado con slash final):
+- GET  /api/kpis/
+- POST /api/formulario/
+
+
+====================================================
+1) BACKEND NODE + EXPRESS + SOCKET.IO (un puerto)
+====================================================
+# Instalar y correr
+cd C:\ruta\a\backend_node
+npm i
+npm run dev        # o: node server.js
+
+# Esperado en consola
+API + WS escuchando en http://localhost:3000
+
+# .env ejemplo
+PORT=3000
+CORS_ORIGIN=*
+SUPABASE_URL=https://<tu-proyecto>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# Flutter (emulador Android / local)
+# lib/config.dart
+const String backendBase = 'http://10.0.2.2:3000';  // REST y WS mismo puerto
+
+# HTTP:
+# GET  $backendBase/api/kpis/
+# POST $backendBase/api/formulario/
+
+# Socket.IO client (Flutter):
+final socket = IO.io(
+  backendBase,
+  IO.OptionBuilder()
+    .setTransports(['websocket','polling'])
+    .setPath('/socket.io/')   // debe coincidir con el server
+    .enableReconnection()
+    .build(),
+);
+
+
+====================================================
+2) BACKEND FASTAPI + SOCKET.IO (un puerto)
+====================================================
+# Crear venv e instalar deps
+cd C:\ruta\a\backend_fastapi
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install fastapi uvicorn "python-socketio[asgi]" python-dotenv supabase httpx "pydantic>=2,<3"
+
+# Correr
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 3000
+
+# Esperado
+Uvicorn running on http://0.0.0.0:3000
+
+# CORS en app/main.py (después de crear _fastapi = FastAPI(...))
+from fastapi.middleware.cors import CORSMiddleware
+_fastapi.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://10.0.2.2:3000",
+        "https://<TU-NGROK-URL>",   # cambia por tu túnel actual
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Montaje Socket.IO en /socket.io/
+app = socketio.ASGIApp(
+    sio,
+    other_asgi_app=_fastapi,
+    socketio_path="/socket.io/"
+)
+
+# Flutter (emulador Android / local)
+# lib/config.dart
+const String backendBase = 'http://10.0.2.2:3000';  // REST + WS
+
+# HTTP: /api/kpis/  y  /api/formulario/
+# WS (Flutter):
+final socket = IO.io(
+  backendBase,
+  IO.OptionBuilder()
+    .setTransports(['websocket','polling'])
+    .setPath('/socket.io/')
+    .enableReconnection()
+    .build(),
+);
+
+
+====================================================
+3) BACKEND DART (Shelf + Socket.IO) — DOS PUERTOS
+====================================================
+# Recomendado para dev: REST:3000 y WS:3001
+
+# Instalar deps y correr
+cd C:\ruta\a\backend_dart_kpis
+dart pub get
+dart run bin/server.dart
+
+# Esperado
+HTTP escuchando en http://0.0.0.0:3000
+WS escuchando en http://0.0.0.0:3001/socket.io/
+
+# CORS (Shelf):
+# En tu pipeline usa shelf_cors_headers y coloca CORS_ORIGIN desde .env
+.addMiddleware(corsHeaders(headers: {
+  ACCESS_CONTROL_ALLOW_ORIGIN: corsOrigin,   # '*' o tus ngrok URLs
+  ACCESS_CONTROL_ALLOW_HEADERS: 'Origin, Content-Type, Accept',
+  ACCESS_CONTROL_ALLOW_METHODS: 'GET, POST, OPTIONS',
+}))
+
+# Flutter (emulador Android / local)
+# lib/config.dart
+const String backendHttpBase = 'http://10.0.2.2:3000'; // REST
+const String backendWsBase   = 'http://10.0.2.2:3001'; // WS
+
+# HTTP: /api/kpis/  y  /api/formulario/
+# WS (Flutter):
+final socket = IO.io(
+  backendWsBase,
+  IO.OptionBuilder()
+    .setTransports(['websocket','polling'])
+    .setPath('/socket.io/')   // debe coincidir con el server
+    .enableReconnection()
+    .build(),
+);
+
+
+====================================================
+4) NGROK (usar desde CELULAR REAL)
+====================================================
+# Instalar y loguear (una vez)
+ngrok config add-authtoken TU_AUTHTOKEN
+
+# NODE o FASTAPI (un solo puerto)
+ngrok http 3000
+# Copia la URL https (ej: https://abc123.ngrok-free.app)
+
+# CORS (Node/FastAPI): cambia .env o allow_origins a esa URL
+# Flutter (celular): usa esa misma URL como base (REST+WS)
+# lib/config.dart (Node/FastAPI)
+const String backendBase = 'https://abc123.ngrok-free.app';
+
+# Handshake WS de prueba (navegador):
+# https://abc123.ngrok-free.app/socket.io/?EIO=4&transport=polling
+
+# DART (dos puertos) - usa UN AGENTE con dos túneles:
+# Edita %USERPROFILE%\.config\ngrok\ngrok.yml (o AppData\Local\ngrok\ngrok.yml)
+version: "3"
+authtoken: TU_AUTHTOKEN
+tunnels:
+  rest:
+    proto: http
+    addr: 3000
+  ws:
+    proto: http
+    addr: 3001
+
+# Levanta ambos en un solo agente:
+ngrok start --all
+
+# Obtendrás 2 URLs https (REST y WS)
+# Flutter (celular):
+const String backendHttpBase = 'https://<rest-ngrok>.ngrok-free.app';
+const String backendWsBase   = 'https://<ws-ngrok>.ngrok-free.app';
+
+# CORS (Dart/Shelf): CORS_ORIGIN con ambas URLs separadas por coma:
+# CORS_ORIGIN=https://<rest-ngrok>.ngrok-free.app,https://<ws-ngrok>.ngrok-free.app
+
+Notas:
+- En plan free la URL cambia cada vez que reinicias ngrok.
+- En plan Pro puedes reservar subdominio fijo.
+
+
+====================================================
+5) PRUEBAS RÁPIDAS
+====================================================
+# Local
+curl -i http://localhost:3000/health
+curl -i http://localhost:3000/api/kpis/
+curl -i -X POST http://localhost:3000/api/formulario/ ^
+  -H "Content-Type: application/json" ^
+  -d "{\"categoria\":\"Docentes\",\"satisfaccion\":5}"
+
+# Ngrok (reemplaza localhost por tu URL https pública)
+curl -i https://<TU-NGROK>/health
+curl -i https://<TU-NGROK>/api/kpis/
+curl -i -X POST https://<TU-NGROK>/api/formulario/ ^
+  -H "Content-Type: application/json" ^
+  -d "{\"categoria\":\"Docentes\",\"satisfaccion\":5}"
+
+# WS handshake (polling):
+https://<TU-NGROK>/socket.io/?EIO=4&transport=polling
+
+
+====================================================
+6) ANDROID (EJECUTAR APP EN CELULAR)
+====================================================
+# Ver dispositivos
+flutter devices
+
+# Ejecutar (instala y abre)
+flutter run              # debug + hot reload
+flutter run --release    # release (sin hot reload)
+
+# Instalar APK ya generado
+flutter build apk --release
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+
+
+====================================================
+7) ERRORES COMUNES Y FIX
+====================================================
+- 403 en WebSocket:
+  * Asegura .setPath('/socket.io/') en Flutter.
+  * Backend debe usar ese path (Node por defecto / FastAPI con socketio_path).
+  * CORS: usa la URL https de ngrok en CORS_ORIGIN / allow_origins.
+
+- 307 en REST:
+  * Llama endpoints con slash final: /api/formulario/ y /api/kpis/
+
+- Android “Cleartext not permitted”:
+  * Usa https de ngrok. Si usas http local, habilita android:usesCleartextTraffic="true" (solo dev).
+
+- WinError 10013 o puerto ocupado:
+  * netstat -ano | findstr :3000
+  * taskkill /PID <PID> /F
+  * o cambia de puerto y reinicia ngrok.
+
+- ERR_NGROK_108:
+  * Usa UN solo agente con ngrok start --all (define túneles en ngrok.yml).
