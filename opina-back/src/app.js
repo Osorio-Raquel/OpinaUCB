@@ -11,7 +11,7 @@ import swaggerUi from 'swagger-ui-express';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-// 👇 tus rutas están en la raíz, fuera de /src
+// Rutas
 import authRoutes from '../routes/auth.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,61 +19,63 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+/** 🔑 Estás detrás de proxy (ngrok) → habilita trust proxy ANTES del rate-limit */
+app.set('trust proxy', 1); // o true
+
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(helmet());
 
-// CORS con whitelist desde env (CORS_ORIGINS=URL1,URL2)
-app.use(cors({
-  origin: (origin, cb) => {
-    const allowed = (process.env.CORS_ORIGINS || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-    if (!origin || allowed.length === 0 || allowed.includes(origin)) {
-      return cb(null, true);
-    }
-    cb(new Error('Origen no permitido'));
-  }
+/** Helmet: deja lo básico; si sirves Swagger, evita romperlo */
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
 
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 600 }));
+/** CORS: autoriza tus orígenes (web). Flutter nativo no necesita CORS */
+const allowed = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
+// Si no defines CORS_ORIGINS, permitimos todo (útil para dev)
+app.use(cors(allowed.length
+  ? { origin: (origin, cb) => (!origin || allowed.includes(origin)) ? cb(null, true) : cb(new Error('Origen no permitido')) }
+  : { origin: true }
+));
+
+/** Rate limit (ya con IP correcta gracias a trust proxy) */
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+});
+app.use(limiter);
+
+/** Healthcheck */
 app.get('/api/health', (_req, res) =>
   res.json({ ok: true, time: new Date().toISOString() })
 );
 
-// --- monta tus rutas (sin prefijo /api, coincide con /auth/...) ---
+/** Rutas de app */
 app.use('/auth', authRoutes);
 
-// ---------- Swagger ----------
+/** Swagger */
+const serverUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
-    info: {
-      title: 'API Opina',
-      version: '1.0.0',
-      description: 'Documentación de la API Opina con Swagger',
-    },
+    info: { title: 'API Opina', version: '1.0.0', description: 'Documentación de la API Opina' },
     components: {
-      securitySchemes: {
-        bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      },
+      securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } },
     },
-    servers: [
-      { url: process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}` }
-    ],
+    servers: [{ url: serverUrl }],
   },
-  // Las rutas están en ../routes/*.js (fuera de /src)
-  apis: [
-    path.join(__dirname, '..', 'routes', '*.js'),
-  ],
+  apis: [path.join(__dirname, '..', 'routes', '*.js')],
 };
-
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Handler de errores (útil para CORS)
+/** Errores */
 app.use((err, _req, res, _next) => {
   if (err && err.message === 'Origen no permitido') {
     return res.status(403).json({ ok: false, error: 'CORS: origen no permitido' });

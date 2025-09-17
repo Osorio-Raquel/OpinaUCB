@@ -4,34 +4,37 @@ import { Server } from 'socket.io';
 import { app } from './app.js';
 import 'dotenv/config';
 
-// Definición del puerto, usando variable de entorno o puerto 3000 por defecto
+// Puerto
 const PORT = process.env.PORT || 3000;
 
-// Crear servidor HTTP usando la aplicación Express
+// Crear servidor HTTP usando la app de Express
 const server = http.createServer(app);
 
-// Configuración del servidor Socket.IO
+// Orígenes permitidos para CORS/WebSocket (desde .env)
+const origins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+// Config Socket.IO (CORS)
 const io = new Server(server, {
-  cors: { 
-    origin: '*', // Permitir conexiones desde cualquier origen (en producción debería ser más restrictivo)
-    methods: ['GET', 'POST'] // Métodos HTTP permitidos para CORS
-  }
+  cors: origins.length
+    ? { origin: origins, methods: ['GET', 'POST'], credentials: true }
+    : { origin: true,  methods: ['GET', 'POST'], credentials: true }, // dev por defecto
 });
 
-// Opcional: exponer io para usarlo en rutas/servicios
-// Esto permite acceder a la instancia de Socket.IO desde otras partes de la aplicación
+// Exponer io a la app si lo necesitas en rutas/servicios
 app.set('io', io);
 
-// Manejo de eventos de conexión de sockets
+// Eventos de socket
 io.on('connection', (socket) => {
-  console.log('⚡ socket conectado:', socket.id); // Log cuando un cliente se conecta
-  
-  // Evento que se dispara cuando un cliente se desconecta
+  console.log('⚡ socket conectado:', socket.id);
   socket.on('disconnect', () => console.log('👋 socket fuera:', socket.id));
 });
 
-// Iniciar el servidor en el puerto especificado
-server.listen(PORT, () => {
-  console.log(`API lista en http://localhost:${PORT}`);
-  console.log(`Swagger UI en http://localhost:${PORT}/api-docs`);
+// Iniciar servidor: importante escuchar en 0.0.0.0 para LAN/ngrok/adb reverse
+server.listen(PORT, '0.0.0.0', () => {
+  const base = process.env.BASE_URL || `http://localhost:${PORT}`;
+  console.log(`API lista en ${base}`);
+  console.log(`Swagger UI en ${base}/api-docs`);
 });
