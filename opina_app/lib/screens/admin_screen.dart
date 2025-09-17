@@ -10,21 +10,21 @@ class AdminScreen extends StatefulWidget {
 }
 
 class AdminScreenState extends State<AdminScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 0; // Índice para controlar la pestaña seleccionada en la barra inferior
 
-  // Método para cambiar el índice seleccionado
+  // Método para cambiar el índice seleccionado en la barra de navegación inferior
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  // Función para cerrar sesión
+  // Función para cerrar sesión y redirigir al login
   void _logout() {
     // Aquí podrías agregar lógica para limpiar el token de autenticación
     // si estás usando shared_preferences o similar
     
-    // Navegar de regreso a la pantalla de login
+    // Navegar de regreso a la pantalla de login (reemplaza la pila de navegación)
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -34,9 +34,9 @@ class AdminScreenState extends State<AdminScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[100], // Fondo gris claro
       appBar: AppBar(
-        backgroundColor: Colors.blue[900],
+        backgroundColor: Colors.blue[900], // Azul oscuro
         title: const Text(
           'Panel de Administración',
           style: TextStyle(
@@ -44,16 +44,18 @@ class AdminScreenState extends State<AdminScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true, // Centrar el título
+        iconTheme: const IconThemeData(color: Colors.white), // Color blanco para íconos
         automaticallyImplyLeading: false, // Elimina el botón de retroceso por defecto
         actions: [
+          // Botón de notificaciones
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
               // Acción para notificaciones
             },
           ),
+          // Botón para cerrar sesión
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: _logout, // Conectado a la función de cerrar sesión
@@ -62,9 +64,9 @@ class AdminScreenState extends State<AdminScreen> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0), // Espaciado alrededor del contenido
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start, // Alinear contenido a la izquierda
           children: [
             // Título de bienvenida
             const Text(
@@ -75,7 +77,8 @@ class AdminScreenState extends State<AdminScreen> {
                 color: Color.fromARGB(255, 13, 95, 219),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 8), // Espaciado
+            // Subtítulo descriptivo
             const Text(
               'Gestiona las encuestas y visualiza los resultados',
               style: TextStyle(
@@ -83,15 +86,15 @@ class AdminScreenState extends State<AdminScreen> {
                 color: Colors.grey,
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 30), // Espaciado
             
-            // Grid de botones principales
+            // Grid de botones principales con 2 columnas
             Expanded(
               child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 1.2,
+                crossAxisCount: 2, // 2 columnas
+                crossAxisSpacing: 20, // Espaciado horizontal entre elementos
+                mainAxisSpacing: 20, // Espaciado vertical entre elementos
+                childAspectRatio: 1.2, // Relación aspecto ancho/alto
                 children: [
                   // Botón 1: Calidad Académica
                   _buildAdminButton(
@@ -136,16 +139,16 @@ class AdminScreenState extends State<AdminScreen> {
               ),
             ),
             
-            // Estadísticas rápidas
+            // Tarjeta de estadísticas rápidas
             Card(
-              elevation: 4,
+              elevation: 4, // Sombra
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12), // Bordes redondeados
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround, // Espaciado uniforme
                   children: [
                     _buildStatItem('Encuestas Totales', '1,245', Icons.assignment),
                     _buildStatItem('Usuarios Activos', '856', Icons.people),
@@ -158,7 +161,7 @@ class AdminScreenState extends State<AdminScreen> {
         ),
       ),
       
-      // Barra de navegación inferior
+      // Barra de navegación inferior con 3 opciones
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -174,19 +177,20 @@ class AdminScreenState extends State<AdminScreen> {
             label: 'Configuración',
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue[800],
-        onTap: _onItemTapped,
+        currentIndex: _selectedIndex, // Índice actual seleccionado
+        selectedItemColor: Colors.blue[800], // Color del ítem seleccionado
+        onTap: _onItemTapped, // Manejar taps
       ),
 
-      // Botón de Cerrar Sesión adicional en el drawer (opcional)
+      // Drawer lateral derecho (menú deslizable)
       endDrawer: Drawer(
         child: ListView(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.zero, // Sin padding
           children: [
+            // Encabezado del drawer con información del usuario
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue[900],
+                color: Colors.blue[900], // Fondo azul oscuro
               ),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,21 +222,24 @@ class AdminScreenState extends State<AdminScreen> {
                 ],
               ),
             ),
+            // Opción de Inicio
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Inicio'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Cerrar el drawer
               },
             ),
+            // Opción de Configuración
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Configuración'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Cerrar el drawer
               },
             ),
-            const Divider(),
+            const Divider(), // Línea divisoria
+            // Opción de Cerrar Sesión
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
               title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
@@ -244,7 +251,7 @@ class AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  // Widget para construir botones del admin
+  // Método auxiliar para construir botones del panel de administración
   Widget _buildAdminButton({
     required String title,
     required IconData icon,
@@ -252,31 +259,31 @@ class AdminScreenState extends State<AdminScreen> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 4,
+      elevation: 4, // Sombra
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12), // Bordes redondeados
       ),
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        onTap: onTap, // Acción al hacer tap
+        borderRadius: BorderRadius.circular(12), // Bordes redondeados para el efecto de tap
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: color,
+            borderRadius: BorderRadius.circular(12), // Bordes redondeados
+            color: color, // Color de fondo
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16), // Espaciado interno
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido verticalmente
             children: [
               Icon(
                 icon,
                 size: 40,
-                color: Colors.white,
+                color: Colors.white, // Ícono blanco
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 10), // Espaciado
               Text(
                 title,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.center, // Texto centrado
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -290,29 +297,29 @@ class AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  // Widget para construir ítems de estadísticas
+  // Método auxiliar para construir ítems de estadísticas
   Widget _buildStatItem(String title, String value, IconData icon) {
     return Column(
       children: [
         Icon(
           icon,
-          color: Colors.blue[700],
+          color: Colors.blue[700], // Color azul para el ícono
           size: 30,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 8), // Espaciado
         Text(
           value,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.blue[900],
+            color: Colors.blue[900], // Color azul oscuro para el valor
           ),
         ),
         Text(
           title,
           style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: Colors.grey, // Color gris para el título
           ),
         ),
       ],
