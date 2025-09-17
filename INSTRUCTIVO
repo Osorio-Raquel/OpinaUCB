@@ -1,0 +1,102 @@
+INSTRUCTIVO DE INSTALACIÓN Y DEPENDENCIAS — PROYECTO OPINA
+
+REQUISITOS
+- Node.js ≥ 18 (recomendado 20)  |  Comprobar: node -v
+- npm (incluido con Node)        |  Comprobar: npm -v
+- Flutter SDK ≥ 3.x              |  Comprobar: flutter doctor
+
+──────────────────────────────────────────────────────────────────────
+BACKEND (Node + Express + Socket.IO + Supabase)
+
+1) Crear carpeta del backend
+   mkdir opina-back && cd opina-back
+   npm init -y
+
+2) Instalar dependencias de producción
+   npm i express socket.io @supabase/supabase-js dotenv helmet cors express-rate-limit morgan jsonwebtoken bcryptjs
+
+3) Instalar dependencias de desarrollo
+   npm i -D nodemon
+
+4) Scripts recomendados en package.json
+   {
+     "type": "module",
+     "scripts": {
+       "dev": "nodemon",
+       "dev:win": "nodemon -L",
+       "start": "node src/server.js"
+     }
+   }
+
+5) Archivo nodemon.json (reinicio automático)
+   {
+     "watch": ["src", ".env"],
+     "ext": "js,json,env",
+     "ignore": ["node_modules", "src/docs/*"],
+     "exec": "node --enable-source-maps src/server.js",
+     "delay": "100ms"
+   }
+
+6) Variables de entorno (.env)
+   PORT=3000
+   NODE_ENV=development
+   JWT_SECRET=supersecreto
+   JWT_EXPIRES=2d
+   SUPABASE_URL=https://TU-PROYECTO.supabase.co
+   SUPABASE_SERVICE_ROLE=eyJhbGciOi...   # NO subir a git
+   CORS_ORIGINS=http://localhost:5173,http://localhost:3001
+
+7) Ejecutar en desarrollo
+   npm run dev
+   (Windows si hay problema de file-watch: npm run dev:win)
+
+──────────────────────────────────────────────────────────────────────
+APP FLUTTER (REST + Socket.IO + .env + Provider)
+
+1) Crear proyecto
+   flutter create opina_app
+   cd opina_app
+
+2) Instalar librerías
+   flutter pub add http socket_io_client provider flutter_dotenv fl_chart flutter_secure_storage intl
+
+3) Archivo de entorno (assets/.env)
+   BASE_URL=https://tu-ngrok-o-servidor
+   # (opcional) SOCKET_URL=wss://tu-ngrok-o-servidor
+
+4) Registrar assets en pubspec.yaml
+   flutter:
+     uses-material-design: true
+     assets:
+       - assets/.env
+
+5) Ejecutar
+   flutter run -d chrome     # web
+   # o: flutter run -d windows / macos / linux / <emulador-android>
+
+──────────────────────────────────────────────────────────────────────
+EVENTOS DE WEBSOCKETS (CONVENCIÓN PARA DASHBOARD TIEMPO REAL)
+
+Servidor -> Cliente:
+- "kpis:actualizado"      payload ej: { "seccion":"calidad", "total":123, "promedio":4.2 }
+
+Cliente -> Servidor:
+- "kpis:unirse"           payload: "calidad" | "infraestructura" | "experiencia"
+
+Salas (server):
+- "sala:kpi:calidad", "sala:kpi:infraestructura", "sala:kpi:experiencia"
+
+──────────────────────────────────────────────────────────────────────
+RESUMEN DE LIBRERÍAS INSTALADAS
+
+Backend:
+- express, socket.io, @supabase/supabase-js
+- dotenv, helmet, cors, express-rate-limit, morgan
+- jsonwebtoken, bcryptjs
+- (dev) nodemon
+
+Flutter:
+- http, socket_io_client, provider, flutter_dotenv
+- fl_chart, flutter_secure_storage, intl
+
+FIN
