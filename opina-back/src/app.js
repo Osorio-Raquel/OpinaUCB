@@ -5,11 +5,9 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import 'dotenv/config';
 
-// 👇 imports ESM para Swagger
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
-// 👇 __dirname en ESM
 import { fileURLToPath } from 'url';
 import path from 'path';
 const __filename = fileURLToPath(import.meta.url);
@@ -59,15 +57,14 @@ const swaggerOptions = {
       { url: process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}` }
     ],
   },
-  // Asegura paths correctos en ESM
+  // Incluimos tu patrón EXACTO + la ruta absoluta por compatibilidad
   apis: [
-    path.join(__dirname, 'routes', '*.js'),
-    path.join(__dirname, '*.js'),
+    "./routes/*.js",                            // ← como pediste
+    path.join(__dirname, 'routes', '*.js'),     // ← robusto en ESM
   ],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// export ESM (mantengo tu export nombrado)
 export { app };
