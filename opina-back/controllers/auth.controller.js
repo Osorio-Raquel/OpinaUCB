@@ -1,28 +1,33 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const { getUserByEmail } = require("../services/user.service");
+// controllers/auth.controller.js
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { getUserByEmail, isEmailTaken, createUser } from '../services/user.service.js';
 
-const login = async (req, res) => {
+const JWT_EXPIRES = process.env.JWT_EXPIRES || '1h';
+
+export const login = async (req, res) => {
   try {
-    const { correo, contrasena } = req.body;
+    const email = (req.body.correo || '').trim().toLowerCase();
+    const pass  = (req.body.contrasena || '').trim();
 
-    // Buscar usuario
-    const user = await getUserByEmail(correo);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!email || !pass) {
+      return res.status(400).json({ message: 'Faltan campos' });
+    }
 
-    // Verificar contraseña
-    const validPassword = await bcrypt.compare(contrasena, user.contrasena);
-    if (!validPassword) return res.status(401).json({ message: "Credenciales inválidas" });
+    const user = await getUserByEmail(email);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    // Generar token
+    const ok = await bcrypt.compare(pass, user.contrasena || '');
+    if (!ok) return res.status(401).json({ message: 'Credenciales inválidas' });
+
     const token = jwt.sign(
       { id: user.id, correo: user.correo, rol: user.rol },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: JWT_EXPIRES }
     );
 
     res.json({
-      message: "Login exitoso",
+      message: 'Login exitoso',
       token,
       user: {
         id: user.id,
@@ -32,21 +37,64 @@ const login = async (req, res) => {
         apellido_materno: user.apellido_materno,
         anonimo: user.anonimo,
         rol: user.rol,
-        creado_en: user.creado_en
+        creado_en: user.creado_en,
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Error en el servidor", error });
+    console.error('login error:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
-const getMe = async (req, res) => {
+export const register = async (req, res) => {
   try {
-    const user = req.user; // viene del middleware
-    res.json({ user });
+    const {
+      correo,
+      contrasena,
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      anonimo = false,
+      rol = 'ESTUDIANTE',
+    } = req.body || {};
+
+    const email = (correo || '').trim().toLowerCase();
+    const pass  = (contrasena || '').trim();
+
+    if (!email || !pass || !nombre || !apellido_paterno || !apellido_materno) {
+      return res.status(400).json({ message: 'Todos los campos obligatorios deben enviarse' });
+    }
+
+    if (await isEmailTaken(email)) {
+      return res.status(409).json({ message: 'El correo ya está registrado' });
+    }
+
+    const hash = await bcrypt.hash(pass, 10);
+    const user = await createUser({
+      correo: email,
+      passwordHash: hash,
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      anonimo,
+      rol,
+    });
+
+    return res.status(201).json({
+      message: 'Usuario creado exitosamente',
+      user
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error en el servidor", error });
+    console.error('register error:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
   }
 };
 
-module.exports = { login, getMe };
+export const getMe = async (req, res) => {
+  try {
+    res.json({ user: req.user });
+  } catch (error) {
+    console.error('getMe error:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};

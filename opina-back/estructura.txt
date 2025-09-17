@@ -1,0 +1,17 @@
+.
+|-- controllers
+|   `-- auth.controller.js
+|-- estructura.txt
+|-- middlewares
+|   `-- auth.middleware.js
+|-- package-lock.json
+|-- package.json
+|-- routes
+|   `-- auth.routes.js
+|-- services
+|   `-- user.service.js
+`-- src
+    |-- app.js
+    `-- server.js
+
+5 directories, 9 files

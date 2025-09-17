@@ -1,8 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const { login, getMe } = require('../controllers/auth.controller');
-const authenticateToken = require('../middlewares/auth.middleware');
+// routes/auth.routes.js
+import { Router } from 'express';
+import { login, register, getMe } from '../controllers/auth.controller.js';
+import authMiddleware from '../middlewares/auth.middleware.js';
 
+const router = Router();
 
 /**
  * @swagger
@@ -10,7 +11,7 @@ const authenticateToken = require('../middlewares/auth.middleware');
  *   name: Auth
  *   description: Endpoints de autenticación
  */
-//rutas.post('/login') -> /api/auth/login
+
 /**
  * @swagger
  * /auth/login:
@@ -23,9 +24,7 @@ const authenticateToken = require('../middlewares/auth.middleware');
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - correo
- *               - contrasena
+ *             required: [correo, contrasena]
  *             properties:
  *               correo:
  *                 type: string
@@ -34,78 +33,51 @@ const authenticateToken = require('../middlewares/auth.middleware');
  *                 type: string
  *                 example: 123456
  *     responses:
- *       200:
- *         description: Login exitoso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Login exitoso
- *                 token:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       format: uuid
- *                     correo:
- *                       type: string
- *                     nombre:
- *                       type: string
- *                     apellido_paterno:
- *                       type: string
- *                     apellido_materno:
- *                       type: string
- *                     anonimo:
- *                       type: boolean
- *                     rol:
- *                       type: string
- *                     creado_en:
- *                       type: string
- *                       format: date-time
- *       401:
- *         description: Credenciales inválidas
- *       404:
- *         description: Usuario no encontrado
+ *       200: { description: Login exitoso }
+ *       401: { description: Credenciales inválidas }
+ *       404: { description: Usuario no encontrado }
  */
 router.post('/login', login);
-//ruta.get('/me') -> /api/auth/me
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Registrar un nuevo usuario
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [correo, contrasena, nombre, apellido_paterno, apellido_materno]
+ *             properties:
+ *               correo: { type: string, example: nuevo@ucb.edu.bo }
+ *               contrasena: { type: string, example: 123456 }
+ *               nombre: { type: string, example: Ana }
+ *               apellido_paterno: { type: string, example: López }
+ *               apellido_materno: { type: string, example: Ramírez }
+ *               anonimo: { type: boolean, example: false }
+ *               rol: { type: string, example: ESTUDIANTE }
+ *     responses:
+ *       201: { description: Usuario creado }
+ *       409: { description: Correo ya registrado }
+ */
+router.post('/register', register);
+
 /**
  * @swagger
  * /auth/me:
  *   get:
  *     summary: Obtiene la información del usuario autenticado
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
+ *     security: [ { bearerAuth: [] } ]
  *     responses:
- *       200:
- *         description: Datos del usuario autenticado
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       format: uuid
- *                     correo:
- *                       type: string
- *                     rol:
- *                       type: string
- *       401:
- *         description: Token requerido
- *       403:
- *         description: Token inválido o expirado
+ *       200: { description: Datos del usuario autenticado }
+ *       401: { description: Token requerido }
+ *       403: { description: Token inválido o expirado }
  */
-router.get('/me', authenticateToken, getMe);
+router.get('/me', authMiddleware, getMe);
 
-module.exports = router;
+export default router;

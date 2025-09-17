@@ -10,6 +10,10 @@ import swaggerUi from 'swagger-ui-express';
 
 import { fileURLToPath } from 'url';
 import path from 'path';
+
+// 👇 tus rutas están en la raíz, fuera de /src
+import authRoutes from '../routes/auth.routes.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -39,6 +43,9 @@ app.get('/api/health', (_req, res) =>
   res.json({ ok: true, time: new Date().toISOString() })
 );
 
+// --- monta tus rutas (sin prefijo /api, coincide con /auth/...) ---
+app.use('/auth', authRoutes);
+
 // ---------- Swagger ----------
 const swaggerOptions = {
   definition: {
@@ -57,14 +64,22 @@ const swaggerOptions = {
       { url: process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}` }
     ],
   },
-  // Incluimos tu patrón EXACTO + la ruta absoluta por compatibilidad
+  // Las rutas están en ../routes/*.js (fuera de /src)
   apis: [
-    "./routes/*.js",                            // ← como pediste
-    path.join(__dirname, 'routes', '*.js'),     // ← robusto en ESM
+    path.join(__dirname, '..', 'routes', '*.js'),
   ],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Handler de errores (útil para CORS)
+app.use((err, _req, res, _next) => {
+  if (err && err.message === 'Origen no permitido') {
+    return res.status(403).json({ ok: false, error: 'CORS: origen no permitido' });
+  }
+  console.error(err);
+  res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+});
 
 export { app };
