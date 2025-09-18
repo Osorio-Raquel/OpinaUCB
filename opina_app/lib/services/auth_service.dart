@@ -1,8 +1,8 @@
-// lib/services/auth_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import './api_service.dart';
 import '../models/user_model.dart';
+import 'token_store.dart'; // 👈 NEW
 
 class AuthService {
   final ApiService _apiService = ApiService();
@@ -16,9 +16,13 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        final token = data['token'] as String;
+        // 👇 Guarda el token automáticamente
+        await TokenStore.save(token);
+
         return {
           'success': true,
-          'token': data['token'],
+          'token': token,
           'user': User.fromJson(data['user']),
         };
       } else {
@@ -29,10 +33,7 @@ class AuthService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Error de conexión: $e',
-      };
+      return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
 
@@ -50,10 +51,7 @@ class AuthService {
 
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return {
-          'success': true,
-          'user': User.fromJson(data['user']),
-        };
+        return {'success': true, 'user': User.fromJson(data['user'])};
       } else {
         final Map<String, dynamic> error = json.decode(response.body);
         return {
@@ -62,23 +60,18 @@ class AuthService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Error de conexión: $e',
-      };
+      return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
 
+  /// getMe con token explícito (tu versión original)
   Future<Map<String, dynamic>> getMe(String token) async {
     try {
       final response = await _apiService.get('auth/me', token: token);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return {
-          'success': true,
-          'user': User.fromJson(data['user']),
-        };
+        return {'success': true, 'user': User.fromJson(data['user'])};
       } else {
         return {
           'success': false,
@@ -86,10 +79,27 @@ class AuthService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Error de conexión: $e',
-      };
+      return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
+
+  // ===== Helpers nuevos =====
+
+  /// Carga el token guardado y llama /auth/me
+  Future<Map<String, dynamic>> getMeSaved() async {
+    final token = await TokenStore.get();
+    if (token == null) {
+      return {'success': false, 'message': 'No hay sesión'};
+    }
+    return getMe(token);
+  }
+
+  /// Devuelve el token guardado (o null)
+  Future<String?> getSavedToken() => TokenStore.get();
+
+  /// ¿Hay sesión activa?
+  Future<bool> isLoggedIn() async => (await TokenStore.get()) != null;
+
+  /// Cierra sesión (borra token)
+  Future<void> logout() => TokenStore.clear();
 }

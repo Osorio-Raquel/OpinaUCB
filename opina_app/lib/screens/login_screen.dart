@@ -5,6 +5,7 @@ import 'user_screen.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_textfield.dart';
 import '../services/auth_service.dart';
+import '../services/token_store.dart'; // 👈 NEW
 import '../models/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,15 +22,15 @@ class LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String _errorMessage = '';
 
-  void _login() async {
+  Future<void> _login() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
-    
+
     final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text.trim();
-    
+
     if (email.isEmpty || password.isEmpty) {
       setState(() {
         _isLoading = false;
@@ -37,22 +38,21 @@ class LoginScreenState extends State<LoginScreen> {
       });
       return;
     }
-    
+
     final result = await _authService.login(email, password);
-    
+
     if (!mounted) return;
-    
+
     setState(() => _isLoading = false);
-    
+
     if (result['success'] == true) {
       final User user = result['user'];
       final String token = result['token'];
-      
-      // Guardar token en preferencias (puedes usar shared_preferences)
-      // ...
-      
-      // Navegar a la pantalla correspondiente según el rol del usuario
-      // CORRECCIÓN: Cambiar 'ADMIN' por 'ADMINISTRADOR'
+
+      // ✅ Guardar token en preferencias
+      await TokenStore.save(token);
+
+      // ✅ Rol correcto:
       if (user.rol == 'ADMIN') {
         Navigator.pushReplacement(
           context,
@@ -72,6 +72,13 @@ class LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -80,12 +87,7 @@ class LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icono o logo de la aplicación
-            const Icon(
-              Icons.lock_outline,
-              size: 80,
-              color: Color(0xFF4285F4),
-            ),
+            const Icon(Icons.lock_outline, size: 80, color: Color(0xFF4285F4)),
             const SizedBox(height: 20),
             const Text(
               'Bienvenido',
@@ -98,10 +100,7 @@ class LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 10),
             const Text(
               'Ingresa a tu cuenta',
-              style: TextStyle(
-                fontSize: 16,
-                color: Color(0xFF666666),
-              ),
+              style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
             ),
             const SizedBox(height: 40),
             CustomTextField(
@@ -127,7 +126,11 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 20),
+                    const Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFD32F2F),
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
