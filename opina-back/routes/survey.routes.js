@@ -34,7 +34,7 @@ const router = Router();
  *       500:
  *         description: Error del servidor
  */
-router.get('/calidad-academica', authMiddleware, requireRole(['ADMINISTRADOR']), getCalidadAcademicaController);
+router.get('/calidad-academica', authMiddleware, requireRole(['ADMIN']), getCalidadAcademicaController);
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ router.get('/calidad-academica', authMiddleware, requireRole(['ADMINISTRADOR']),
  *       500:
  *         description: Error del servidor
  */
-router.get('/experiencia-apoyo', authMiddleware, requireRole(['ADMINISTRADOR']), getExperienciaApoyoController);
+router.get('/experiencia-apoyo', authMiddleware, requireRole(['ADMIN']), getExperienciaApoyoController);
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ router.get('/experiencia-apoyo', authMiddleware, requireRole(['ADMINISTRADOR']),
  *       500:
  *         description: Error del servidor
  */
-router.get('/infraestructura-servicios', authMiddleware, requireRole(['ADMINISTRADOR']), getInfraestructuraServiciosController);
+router.get('/infraestructura-servicios', authMiddleware, requireRole(['ADMIN']), getInfraestructuraServiciosController);
 
 /**
  * @swagger
