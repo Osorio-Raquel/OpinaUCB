@@ -61,11 +61,9 @@ class _CalidadAcademicaFormScreenState extends State<CalidadAcademicaFormScreen>
     setState(() => _enviando = false);
 
     if (resp['success'] == true) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Respuesta registrada. ¡Gracias!')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Respuesta registrada. ¡Gracias!')),
+      );
       _formKey.currentState!.reset();
       setState(() { p1=p2=p3=p4=p5=p6=null; _sugerenciasCtrl.clear(); });
       Navigator.of(context).maybePop();
@@ -122,7 +120,7 @@ class _CalidadAcademicaFormScreenState extends State<CalidadAcademicaFormScreen>
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
+    child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,49 +234,61 @@ class _CalidadAcademicaFormScreenState extends State<CalidadAcademicaFormScreen>
                             children: [
                               const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 20),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(_error!, style: const TextStyle(color: Color(0xFFD32F2F)))),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: const TextStyle(color: Color(0xFFD32F2F)),
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ],
                       const SizedBox(height: 10),
 
+                      // 1
                       _questionCard(
-                        titulo: '1) Claridad en la explicación de contenidos por parte de los docentes:',
+                        titulo: '1) ¿Qué tan claro fue el contenido impartido en las materias?',
                         opciones: opcionesClaridad,
                         valor: p1,
                         onChanged: (v) => setState(() => p1 = v),
                       ),
+                      // 2
                       _questionCard(
-                        titulo: '2) Preparación y dominio de los contenidos por parte de los docentes:',
+                        titulo: '2) ¿Cómo evalúas la preparación de los docentes en tu carrera?',
                         opciones: opcionesEval5,
                         valor: p2,
                         onChanged: (v) => setState(() => p2 = v),
                       ),
+                      // 3
                       _questionCard(
-                        titulo: '3) Métodos de enseñanza utilizados por los docentes:',
+                        titulo: '3) ¿Qué tan adecuados consideras los métodos de enseñanza utilizados?',
                         opciones: opcionesAdecuacion,
                         valor: p3,
                         onChanged: (v) => setState(() => p3 = v),
                       ),
+                      // 4
                       _questionCard(
-                        titulo: '4) Carga horaria en relación con las exigencias del curso:',
+                        titulo: '4) ¿Cómo calificarías la carga horaria de las materias?',
                         opciones: opcionesCarga,
                         valor: p4,
                         onChanged: (v) => setState(() => p4 = v),
                       ),
+                      // 5
                       _questionCard(
-                        titulo: '5) Programación y flexibilidad de horarios:',
+                        titulo: '5) ¿Qué tan flexible y accesible consideras la programación de horarios?',
                         opciones: opcionesFlex,
                         valor: p5,
                         onChanged: (v) => setState(() => p5 = v),
                       ),
+                      // 6
                       _questionCard(
-                        titulo: '6) Satisfacción general con la calidad académica:',
+                        titulo: '6) Nivel general de satisfacción con la calidad académica:',
                         opciones: opcionesSatisfaccion,
                         valor: p6,
                         onChanged: (v) => setState(() => p6 = v),
                       ),
+
                       _sugerenciasCard(),
                     ],
                   ),
