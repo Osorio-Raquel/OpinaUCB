@@ -1,3 +1,4 @@
+// lib/screens/infraestructura_form_screen.dart
 import 'package:flutter/material.dart';
 import '../services/infraestructura_service.dart';
 
@@ -5,7 +6,7 @@ import '../services/infraestructura_service.dart';
 const opcionesSalones = [
   'Muy adecuados','Adecuados','Regulares','Poco adecuados','Nada adecuados',
 ];
-const opcionesLab = [
+const opcionesLabYLimpieza = [
   'Excelente','Buena','Regular','Deficiente','Muy deficiente',
 ];
 const opcionesBiblioteca = [
@@ -56,8 +57,9 @@ class _InfraestructuraFormScreenState extends State<InfraestructuraFormScreen> {
 
     if (resp['success'] == true) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Respuesta registrada. ¡Gracias!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Respuesta registrada. ¡Gracias!')),
+        );
       }
       _formKey.currentState!.reset();
       setState(() { p1=p2=p3=p4=p5=p6=null; _sugerenciasCtrl.clear(); });
@@ -121,7 +123,7 @@ class _InfraestructuraFormScreenState extends State<InfraestructuraFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '7) (Pregunta abierta) ¿Qué sugerencias tienes para mejorar la infraestructura y los servicios?',
+              '7) (Pregunta abierta) ¿Qué mejoras recomendarías en la infraestructura y servicios?',
               style: TextStyle(
                 fontSize: 16.5, fontWeight: FontWeight.w600, height: 1.35, color: Color(0xFF2D2D2D),
               ),
@@ -235,42 +237,50 @@ class _InfraestructuraFormScreenState extends State<InfraestructuraFormScreen> {
                         ),
                       ],
                       const SizedBox(height: 10),
+
+                      // 1
                       _questionCard(
-                        titulo: '1) ¿Qué tan adecuados son los salones (espacio, mobiliario, ventilación/iluminación)?',
+                        titulo: '1) ¿Qué tan adecuados son los salones de clase en cuanto a espacio y comodidad?',
                         opciones: opcionesSalones,
                         valor: p1,
                         onChanged: (v) => setState(() => p1 = v),
                       ),
+                      // 2
                       _questionCard(
-                        titulo: '2) ¿Cómo calificas los laboratorios (equipamiento, disponibilidad, soporte)?',
-                        opciones: opcionesLab,
+                        titulo: '2) ¿Cómo calificas la infraestructura y el equipamiento de los laboratorios?',
+                        opciones: opcionesLabYLimpieza,
                         valor: p2,
                         onChanged: (v) => setState(() => p2 = v),
                       ),
+                      // 3
                       _questionCard(
-                        titulo: '3) ¿Qué tan útiles consideras los servicios de biblioteca?',
+                        titulo: '3) ¿Qué tan accesibles y útiles consideras los servicios de la biblioteca?',
                         opciones: opcionesBiblioteca,
                         valor: p3,
                         onChanged: (v) => setState(() => p3 = v),
                       ),
+                      // 4
                       _questionCard(
-                        titulo: '4) ¿Qué tan satisfecho(a) estás con la cafetería?',
+                        titulo: '4) ¿Qué tan satisfecho(a) estás con los servicios de cafetería?',
                         opciones: opcionesSatisfaccion,
                         valor: p4,
                         onChanged: (v) => setState(() => p4 = v),
                       ),
+                      // 5
                       _questionCard(
-                        titulo: '5) ¿Cómo evalúas la limpieza en general?',
-                        opciones: opcionesLab, // misma escala de 2) (Excelente..Muy deficiente)
+                        titulo: '5) ¿Cómo evalúas la limpieza de los espacios comunes?',
+                        opciones: opcionesLabYLimpieza, // misma escala: Excelente..Muy deficiente
                         valor: p5,
                         onChanged: (v) => setState(() => p5 = v),
                       ),
+                      // 6
                       _questionCard(
-                        titulo: '6) Nivel de satisfacción general con infraestructura y servicios:',
+                        titulo: '6) Nivel general de satisfacción con la infraestructura y servicios:',
                         opciones: opcionesSatisfaccion,
                         valor: p6,
                         onChanged: (v) => setState(() => p6 = v),
                       ),
+
                       _sugerenciasCard(),
                     ],
                   ),
