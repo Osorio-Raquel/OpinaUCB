@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'login_screen.dart';
 
-// 👇 imports nuevos/corregidos
+// 👇 imports existentes
 import 'experiencia_form_screen.dart';
 import '../services/experiencia_service.dart';
+
+// 👇 NUEVOS imports para Infraestructura
+import 'infraestructura_form_screen.dart';
+import '../services/infraestructura_service.dart';
+
 import '../services/token_store.dart';
-import '../utils/constants.dart'; // 👈 usa la base URL central
+import '../utils/constants.dart'; // base URL centralizada
 
 class UserScreen extends StatefulWidget {
   final User user;
@@ -18,22 +23,12 @@ class UserScreen extends StatefulWidget {
 }
 
 class UserScreenState extends State<UserScreen> {
-  // Función para cerrar sesión
-  Future<void> _logout() async {
-    await TokenStore.clear();
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
+  // ===== Navegaciones =====
 
   void _goToExperienciaForm() {
-    // Usa la base URL centralizada (cámbiala con --dart-define en runtime si hace falta)
-    // Para emulador Android: flutter run --dart-define=BACKEND_BASE=http://10.0.2.2:3000
     final expService = ExperienciaService(
       baseUrl: Constants.apiBaseUrl,
-      getToken: TokenStore.get, // 👈 requerido por tu service
+      getToken: TokenStore.get,
     );
 
     Navigator.push(
@@ -41,6 +36,30 @@ class UserScreenState extends State<UserScreen> {
       MaterialPageRoute(
         builder: (_) => ExperienciaFormScreen(servicio: expService),
       ),
+    );
+  }
+
+  void _goToInfraestructuraForm() {
+    final infraService = InfraestructuraService(
+      baseUrl: Constants.apiBaseUrl,
+      getToken: TokenStore.get,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => InfraestructuraFormScreen(servicio: infraService),
+      ),
+    );
+  }
+
+  // ===== Logout =====
+  Future<void> _logout() async {
+    await TokenStore.clear();
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
@@ -87,7 +106,7 @@ class UserScreenState extends State<UserScreen> {
             ),
             const SizedBox(height: 40),
 
-            // Botón 1: Calidad Académica
+            // Botón 1: Calidad Académica (placeholder)
             ElevatedButton(
               onPressed: () {
                 // TODO: navegar a pantalla de Calidad Académica
@@ -117,9 +136,7 @@ class UserScreenState extends State<UserScreen> {
 
             // Botón 2: Infraestructura y Servicios
             ElevatedButton(
-              onPressed: () {
-                // TODO: navegar a pantalla de Infraestructura y Servicios
-              },
+              onPressed: _goToInfraestructuraForm, // ✅ ahora navega
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[700],
                 foregroundColor: Colors.white,
@@ -145,7 +162,7 @@ class UserScreenState extends State<UserScreen> {
 
             // Botón 3: Experiencia y Apoyo al Estudiante
             ElevatedButton(
-              onPressed: _goToExperienciaForm, // 👈 navegación al formulario
+              onPressed: _goToExperienciaForm,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[800],
                 foregroundColor: Colors.white,
@@ -178,7 +195,7 @@ class UserScreenState extends State<UserScreen> {
                 side: BorderSide(color: Colors.red[200]!),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0), // ✅ FIX aquí
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
