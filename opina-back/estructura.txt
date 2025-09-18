@@ -1,6 +1,9 @@
 .
 |-- controllers
 |   `-- auth.controller.js
+|   `-- experienciaApoyo.controller.js
+|   `-- infraestructura.controller.js
+|   `-- survey.controller.js
 |-- estructura.txt
 |-- middlewares
 |   `-- auth.middleware.js
@@ -8,8 +11,14 @@
 |-- package.json
 |-- routes
 |   `-- auth.routes.js
+|   `-- experienciaApoyo.routes.js
+|   `-- infraestructura.routes.js
+|   `-- survey.routes.js
 |-- services
 |   `-- user.service.js
+|   `-- experienciaApoyo.service.js
+|   `-- survey.service.js
+|   `-- infraestructura.service.js
 `-- src
     |-- app.js
     `-- server.js

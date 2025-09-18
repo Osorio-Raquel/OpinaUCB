@@ -11,6 +11,7 @@ import swaggerUi from 'swagger-ui-express';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import authRoutes from '../routes/auth.routes.js';
+import surveyRoutes from '../routes/survey.routes.js'; // Resultado de las encuestas
 import experienciaApoyoRoutes from '../routes/experienciaApoyo.routes.js';
 import infraestructuraRoutes from '../routes/infraestructura.routes.js';
 
@@ -68,6 +69,7 @@ app.get('/api/health', (_req, res) => {
 
 /** rutas */
 app.use('/auth', authRoutes);
+app.use('/api/surveys', surveyRoutes); // Rutas de obtener encuestas
 app.use('/experiencia-apoyo', experienciaApoyoRoutes);
 app.use('/infraestructura-servicios', infraestructuraRoutes);
 /** ---------- Swagger: lista localhost y, si existe, NGROK_URL ---------- */
