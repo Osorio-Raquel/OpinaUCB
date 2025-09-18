@@ -28,3 +28,26 @@ export default function authMiddleware(req, res, next) {
     return res.status(403).json({ message: 'Token inválido o expirado' });
   }
 }
+/**
+ * Middleware para verificación de roles
+ * Puede ser usado después de authMiddleware para restringir acceso por roles
+ * @param {Array} allowedRoles - Array de roles permitidos
+ */
+export const requireRole = (allowedRoles) => {
+  return (req, res, next) => {
+    // Verificar que el usuario esté autenticado (debe ejecutarse después de authMiddleware)
+    if (!req.user) {
+      return res.status(401).json({ message: 'Usuario no autenticado' });
+    }
+    
+    // Verificar si el rol del usuario está en los roles permitidos
+    if (!allowedRoles.includes(req.user.rol)) {
+      return res.status(403).json({ 
+        message: 'Permisos insuficientes',
+        error: `El rol ${req.user.rol} no tiene acceso a este recurso` 
+      });
+    }
+    
+    next();
+  };
+};
