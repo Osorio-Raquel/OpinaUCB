@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import authRoutes from '../routes/auth.routes.js';
 import experienciaApoyoRoutes from '../routes/experienciaApoyo.routes.js';
+import infraestructuraRoutes from '../routes/infraestructura.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,7 +69,7 @@ app.get('/api/health', (_req, res) => {
 /** rutas */
 app.use('/auth', authRoutes);
 app.use('/experiencia-apoyo', experienciaApoyoRoutes);
-
+app.use('/infraestructura-servicios', infraestructuraRoutes);
 /** ---------- Swagger: lista localhost y, si existe, NGROK_URL ---------- */
 const port = process.env.PORT || 3000;
 const servers = [
