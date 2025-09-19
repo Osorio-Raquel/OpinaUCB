@@ -1,9 +1,12 @@
 // lib/screens/admin_screen.dart
 import 'package:flutter/material.dart';
+import 'package:opina_app/screens/dashboards_screen.dart';
+=======
 import 'package:opina_app/screens/survey_results_screen.dart';
 import 'package:opina_app/screens/survey_results_screen1.dart';
 import 'package:opina_app/screens/survey_results_screen2.dart';
 import 'package:opina_app/services/token_store.dart' show TokenStore;
+
 import 'login_screen.dart'; // Importamos la pantalla de login
 
 class AdminScreen extends StatefulWidget {
@@ -187,6 +190,20 @@ class AdminScreenState extends State<AdminScreen> {
                       '1,245',
                       Icons.assignment,
                     ),
+                    
+                    // Botón 4: Dashboard
+                    _buildAdminButton(
+                      title: 'Dashboards',
+                      icon: Icons.bar_chart,
+                      color: Colors.purple[700]!,
+                      onTap: () {
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DashboardsScreen(),
+                        ),
+                      );
+                      },
                     _buildStatItem('Usuarios Activos', '856', Icons.people),
                     _buildStatItem(
                       'Tasa de Respuesta',
