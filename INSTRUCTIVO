@@ -1,12 +1,15 @@
 INSTRUCTIVO DE INSTALACIÓN Y DEPENDENCIAS — PROYECTO OPINA
 
-REQUISITOS
+======================================================================
+✅ REQUISITOS PREVIOS
+======================================================================
 - Node.js ≥ 18 (recomendado 20)  |  Comprobar: node -v
-- npm (incluido con Node)        |  Comprobar: npm -v
+- npm (incluido con Node.js)     |  Comprobar: npm -v
 - Flutter SDK ≥ 3.x              |  Comprobar: flutter doctor
 
-──────────────────────────────────────────────────────────────────────
-BACKEND (Node + Express + Socket.IO + Supabase)
+======================================================================
+🖥️ BACKEND (Node + Express + Socket.IO + Supabase)
+======================================================================
 
 1) Crear carpeta del backend
    mkdir opina-back && cd opina-back
@@ -50,8 +53,9 @@ BACKEND (Node + Express + Socket.IO + Supabase)
    npm run dev
    (Windows si hay problema de file-watch: npm run dev:win)
 
-──────────────────────────────────────────────────────────────────────
-APP FLUTTER (REST + Socket.IO + .env + Provider)
+======================================================================
+📱 APP FLUTTER (REST + Socket.IO + .env + Provider)
+======================================================================
 
 1) Crear proyecto
    flutter create opina_app
@@ -72,10 +76,35 @@ APP FLUTTER (REST + Socket.IO + .env + Provider)
 
 5) Ejecutar
    flutter run -d chrome     # web
-   # o: flutter run -d windows / macos / linux / <emulador-android>
+   flutter run -d windows    # escritorio
+   flutter run -d macos      # escritorio
+   flutter run -d linux      # escritorio
+   flutter run -d <emulador-android>
 
-──────────────────────────────────────────────────────────────────────
-EVENTOS DE WEBSOCKETS (CONVENCIÓN PARA DASHBOARD TIEMPO REAL)
+======================================================================
+🔌 CONEXIÓN FLUTTER <-> BACKEND
+======================================================================
+
+Dependiendo de dónde corras el backend (Node.js):
+
+PC / Web:
+  flutter run -d chrome --dart-define=BACKEND_BASE=http://localhost:3000
+
+Emulador Android:
+  flutter run --dart-define=BACKEND_BASE=http://10.0.2.2:3000
+
+Celular físico por USB (sin ngrok):
+  adb reverse --remove-all
+  adb reverse tcp:3000 tcp:3000
+  flutter run --dart-define=BACKEND_BASE=http://127.0.0.1:3000
+
+Celular físico por Internet (con ngrok activo):
+  ngrok http 3000
+  flutter run --dart-define=BACKEND_BASE=https://<TU-NGROK>.ngrok-free.app
+
+======================================================================
+📡 EVENTOS DE WEBSOCKETS (Convención para Dashboard Tiempo Real)
+======================================================================
 
 Servidor -> Cliente:
 - "kpis:actualizado"      payload ej: { "seccion":"calidad", "total":123, "promedio":4.2 }
@@ -84,10 +113,13 @@ Cliente -> Servidor:
 - "kpis:unirse"           payload: "calidad" | "infraestructura" | "experiencia"
 
 Salas (server):
-- "sala:kpi:calidad", "sala:kpi:infraestructura", "sala:kpi:experiencia"
+- "sala:kpi:calidad"
+- "sala:kpi:infraestructura"
+- "sala:kpi:experiencia"
 
-──────────────────────────────────────────────────────────────────────
-RESUMEN DE LIBRERÍAS INSTALADAS
+======================================================================
+📦 RESUMEN DE LIBRERÍAS INSTALADAS
+======================================================================
 
 Backend:
 - express, socket.io, @supabase/supabase-js
@@ -99,4 +131,6 @@ Flutter:
 - http, socket_io_client, provider, flutter_dotenv
 - fl_chart, flutter_secure_storage, intl
 
-FIN
+======================================================================
+FIN DEL INSTRUCTIVO
+======================================================================

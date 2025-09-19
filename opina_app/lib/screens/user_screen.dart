@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'login_screen.dart';
 
-// 👇 imports existentes
+// ========= Formularios existentes =========
 import 'experiencia_form_screen.dart';
 import '../services/experiencia_service.dart';
 
-// 👇 NUEVOS imports para Infraestructura
+// ========= NUEVOS: Calidad Académica =========
+import 'calidad_academica_form_screen.dart';
+import '../services/calidad_academica_service.dart';
+
+// ========= NUEVOS: Infraestructura =========
 import 'infraestructura_form_screen.dart';
 import '../services/infraestructura_service.dart';
 
@@ -25,8 +29,8 @@ class UserScreen extends StatefulWidget {
 class UserScreenState extends State<UserScreen> {
   // ===== Navegaciones =====
 
-  void _goToExperienciaForm() {
-    final expService = ExperienciaService(
+  void _goToCalidadAcademicaForm() {
+    final service = CalidadAcademicaService(
       baseUrl: Constants.apiBaseUrl,
       getToken: TokenStore.get,
     );
@@ -34,7 +38,7 @@ class UserScreenState extends State<UserScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ExperienciaFormScreen(servicio: expService),
+        builder: (_) => CalidadAcademicaFormScreen(servicio: service),
       ),
     );
   }
@@ -49,6 +53,20 @@ class UserScreenState extends State<UserScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => InfraestructuraFormScreen(servicio: infraService),
+      ),
+    );
+  }
+
+  void _goToExperienciaForm() {
+    final expService = ExperienciaService(
+      baseUrl: Constants.apiBaseUrl,
+      getToken: TokenStore.get,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ExperienciaFormScreen(servicio: expService),
       ),
     );
   }
@@ -106,11 +124,9 @@ class UserScreenState extends State<UserScreen> {
             ),
             const SizedBox(height: 40),
 
-            // Botón 1: Calidad Académica (placeholder)
+            // Botón 1: Calidad Académica
             ElevatedButton(
-              onPressed: () {
-                // TODO: navegar a pantalla de Calidad Académica
-              },
+              onPressed: _goToCalidadAcademicaForm, // ✅ ahora navega
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[600],
                 foregroundColor: Colors.white,
@@ -136,7 +152,7 @@ class UserScreenState extends State<UserScreen> {
 
             // Botón 2: Infraestructura y Servicios
             ElevatedButton(
-              onPressed: _goToInfraestructuraForm, // ✅ ahora navega
+              onPressed: _goToInfraestructuraForm,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[700],
                 foregroundColor: Colors.white,
@@ -195,7 +211,7 @@ class UserScreenState extends State<UserScreen> {
                 side: BorderSide(color: Colors.red[200]!),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0), // ✅ FIX aquí
+                padding: const EdgeInsets.all(16.0), // ✅ FIX: const va DENTRO de Padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
