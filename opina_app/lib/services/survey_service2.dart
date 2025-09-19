@@ -1,43 +1,40 @@
-// services/survey_service2.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/survey_model2.dart';
+import '../utils/constants.dart';
 
 class SurveyService2 {
   static Future<List<Survey2>> fetchSurveys(String token) async {
-    try {
-      print('Fetching surveys from infraestructura-servicios endpoint...');
+    final url = Uri.parse(
+      '${Constants.apiBaseUrl}/api/surveys/infraestructura-servicios',
+    );
+    print('[SurveyService] GET $url'); // ✅ Log de URL
 
+    try {
       final response = await http.get(
-        Uri.parse(
-          'http://localhost:3000/api/surveys/infraestructura-servicios',
-        ),
+        url,
         headers: {
-          'Authorization': 'Bearer $token',
           'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
         },
       );
 
-      print('Response status: ${response.statusCode}');
+      print(
+        '[SurveyService] Status Code: ${response.statusCode}',
+      ); // ✅ Log de código HTTP
+      print('[SurveyService] Body: ${response.body}'); // ✅ Log del body
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-
-        if (data['success'] == true) {
-          final List<dynamic> surveysData = data['data'];
-          print('Found ${surveysData.length} infraestructura surveys');
-
-          return surveysData.map((json) => Survey2.fromJson(json)).toList();
-        } else {
-          throw Exception(
-            'Error en la respuesta del servidor: ${data['message']}',
-          );
-        }
+        final data = jsonDecode(response.body);
+        final List surveysJson = data['data'];
+        return surveysJson.map((json) => Survey2.fromJson(json)).toList();
+      } else if (response.statusCode == 401) {
+        throw Exception('No autorizado: token inválido o expirado');
       } else {
-        throw Exception('Failed to load surveys: ${response.statusCode}');
+        throw Exception('Error al cargar encuestas: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in fetchSurveys (infraestructura): $e');
+      print('[SurveyService] Error: $e'); // ✅ Log de error
       rethrow;
     }
   }
