@@ -1,5 +1,6 @@
 // lib/screens/admin_screen.dart
 import 'package:flutter/material.dart';
+import 'package:opina_app/screens/dashboards_screen.dart';
 import 'package:opina_app/screens/survey_results_screen.dart';
 import 'package:opina_app/screens/survey_results_screen1.dart';
 import 'package:opina_app/screens/survey_results_screen2.dart';
@@ -275,23 +276,45 @@ class AdminScreenState extends State<AdminScreen>
                         title: 'Dashboard',
                         icon: Icons.bar_chart,
                         color: const Color(0xFF512DA8),
-                        onTap: () {
-                          // Acción para Dashboard
+                        onTap: () async {
+                          final token = await TokenStore.get();
+                          if (token != null) {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        DashboardsScreen(),
+                                transitionsBuilder:
+                                    (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                    ) {
+                                      return SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(1.0, 0.0),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: child,
+                                      );
+                                    },
+                                transitionDuration: const Duration(
+                                  milliseconds: 500,
+                                ),
+                              ),
+                            );
+                          }
                         },
                       ),
                     ],
                   ),
                 ),
-
-                // Tarjeta de estadísticas rápidas
-                _buildStatsCard(),
               ],
             ),
           ),
         ),
-
-        // Barra de navegación inferior
-        bottomNavigationBar: _buildBottomNavBar(),
 
         // Drawer lateral derecho
         endDrawer: _buildDrawer(),
