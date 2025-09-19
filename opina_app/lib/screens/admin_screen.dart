@@ -1,6 +1,8 @@
 // lib/screens/admin_screen.dart
 import 'package:flutter/material.dart';
 import 'package:opina_app/screens/survey_results_screen.dart';
+import 'package:opina_app/screens/survey_results_screen1.dart';
+import 'package:opina_app/screens/survey_results_screen2.dart';
 import 'package:opina_app/services/token_store.dart' show TokenStore;
 import 'login_screen.dart'; // Importamos la pantalla de login
 
@@ -122,8 +124,17 @@ class AdminScreenState extends State<AdminScreen> {
                     title: 'Infraestructura y Servicios',
                     icon: Icons.business_center,
                     color: Colors.green[700]!,
-                    onTap: () {
-                      // Acción para Infraestructura y Servicios
+                    onTap: () async {
+                      final token = await TokenStore.get();
+                      if (token != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SurveyResultsScreen2(token: token),
+                          ),
+                        );
+                      }
                     },
                   ),
 
@@ -132,8 +143,17 @@ class AdminScreenState extends State<AdminScreen> {
                     title: 'Experiencia y Apoyo',
                     icon: Icons.people,
                     color: Colors.orange[700]!,
-                    onTap: () {
-                      // Acción para Experiencia y Apoyo al Estudiante
+                    onTap: () async {
+                      final token = await TokenStore.get();
+                      if (token != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SurveyResultsScreen1(token: token),
+                          ),
+                        );
+                      }
                     },
                   ),
 

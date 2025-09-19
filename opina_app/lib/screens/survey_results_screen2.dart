@@ -1,35 +1,36 @@
+// screens/survey_results_screen2.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../models/survey_model.dart';
-import '../services/survey_service.dart';
+import '../models/survey_model2.dart';
+import '../services/survey_service2.dart';
 
-class SurveyResultsScreen extends StatefulWidget {
+class SurveyResultsScreen2 extends StatefulWidget {
   final String token;
-  const SurveyResultsScreen({super.key, required this.token});
+  const SurveyResultsScreen2({super.key, required this.token});
 
   @override
-  State<SurveyResultsScreen> createState() => _SurveyResultsScreenState();
+  State<SurveyResultsScreen2> createState() => _SurveyResultsScreen2State();
 }
 
-class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
-  late Future<List<Survey>> surveys;
+class _SurveyResultsScreen2State extends State<SurveyResultsScreen2> {
+  late Future<List<Survey2>> surveys;
 
   @override
   void initState() {
     super.initState();
-    surveys = SurveyService.fetchSurveys(widget.token);
+    surveys = SurveyService2.fetchSurveys(widget.token);
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('Resultados Calidad Académica'),
+        middle: Text('Resultados Infraestructura y Servicios'),
         backgroundColor: CupertinoColors.systemBackground,
         border: null,
       ),
       child: SafeArea(
-        child: FutureBuilder<List<Survey>>(
+        child: FutureBuilder<List<Survey2>>(
           future: surveys,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -72,7 +73,7 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
     );
   }
 
-  Widget _buildSurveyCard(Survey survey, BuildContext context) {
+  Widget _buildSurveyCard(Survey2 survey, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -101,12 +102,12 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemRed.withOpacity(0.1),
+                  color: CupertinoColors.systemGreen.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  CupertinoIcons.doc_chart_fill,
-                  color: CupertinoColors.systemRed,
+                  CupertinoIcons.building_2_fill,
+                  color: CupertinoColors.systemGreen,
                   size: 22,
                 ),
               ),
@@ -118,7 +119,7 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Encuesta #${survey.id}",
+                      "Infraestructura #${survey.id}",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -153,7 +154,7 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  survey.pregunta6SatisfaccionGeneral,
+                  _getShortRating(survey.pregunta6SatisfaccionGeneral),
                   style: const TextStyle(
                     color: CupertinoColors.white,
                     fontSize: 12,
@@ -169,37 +170,45 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
   }
 
   Color _getRatingColor(String rating) {
-    try {
-      final value = double.tryParse(rating) ?? 0;
-      if (value >= 4) return CupertinoColors.systemGreen;
-      if (value >= 3) return CupertinoColors.systemYellow;
+    final lowerRating = rating.toLowerCase();
+    if (lowerRating.contains('muy') ||
+        lowerRating.contains('excelente') ||
+        lowerRating.contains('buena')) {
+      return CupertinoColors.systemGreen;
+    } else if (lowerRating.contains('satisfecho') ||
+        lowerRating.contains('adecuado')) {
+      return CupertinoColors.systemYellow;
+    } else if (lowerRating.contains('insatisfecho') ||
+        lowerRating.contains('regular')) {
       return CupertinoColors.systemRed;
-    } catch (e) {
-      return CupertinoColors.systemGrey;
     }
+    return CupertinoColors.systemGrey;
   }
 
-  void _showSurveyDetails(Survey survey, BuildContext context) {
+  String _getShortRating(String rating) {
+    final lowerRating = rating.toLowerCase();
+    if (lowerRating.contains('muy satisfecho')) return 'Muy Sat';
+    if (lowerRating.contains('satisfecho')) return 'Sat';
+    if (lowerRating.contains('insatisfecho')) return 'Insat';
+    if (lowerRating.contains('regular')) return 'Regular';
+    if (lowerRating.contains('adecuado')) return 'Adec';
+    if (lowerRating.contains('buena')) return 'Buena';
+    if (lowerRating.contains('excelente')) return 'Excel';
+    return rating.length > 10 ? '${rating.substring(0, 8)}...' : rating;
+  }
+
+  void _showSurveyDetails(Survey2 survey, BuildContext context) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: Text("Detalles de Encuesta #${survey.id}"),
+        title: Text("Detalles de Infraestructura #${survey.id}"),
         message: Text("Usuario: ${survey.usuarioId}"),
         actions: [
-          _buildDetailRow("Claridad", survey.pregunta1Claridad),
-          _buildDetailRow(
-            "Preparación Docentes",
-            survey.pregunta2PreparacionDocentes,
-          ),
-          _buildDetailRow(
-            "Métodos Enseñanza",
-            survey.pregunta3MetodosEnsenanza,
-          ),
-          _buildDetailRow("Carga Horaria", survey.pregunta4CargaHoraria),
-          _buildDetailRow(
-            "Programación Horarios",
-            survey.pregunta5ProgramacionHorarios,
-          ),
+          _buildDetailRow("Salones", survey.pregunta1Salones),
+          _buildDetailRow("Laboratorios", survey.pregunta2Laboratorios),
+          _buildDetailRow("Biblioteca", survey.pregunta3Biblioteca),
+          _buildDetailRow("Cafetería", survey.pregunta4Cafeteria),
+          _buildDetailRow("Limpieza", survey.pregunta5Limpieza),
           _buildDetailRow(
             "Satisfacción General",
             survey.pregunta6SatisfaccionGeneral,
@@ -236,19 +245,26 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              color: CupertinoColors.secondaryLabel,
+          Expanded(
+            flex: 2,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                color: CupertinoColors.secondaryLabel,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: CupertinoColors.label,
+          Expanded(
+            flex: 1,
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.label,
+              ),
+              textAlign: TextAlign.right,
             ),
           ),
         ],
@@ -261,7 +277,7 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text("Sugerencias"),
-        content: Text(suggestions),
+        content: SingleChildScrollView(child: Text(suggestions)),
         actions: [
           CupertinoDialogAction(
             onPressed: () {
