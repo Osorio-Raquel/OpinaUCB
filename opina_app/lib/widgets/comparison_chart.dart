@@ -39,10 +39,10 @@ class ComparisonChart extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           SizedBox(
-            height: 300,
+            height: 200,
             child: BarChart(
               BarChartData(
-                alignment: BarChartAlignment.spaceBetween,
+                alignment: BarChartAlignment.spaceEvenly,
                 groupsSpace: 12,
                 barGroups: _createBarGroups(satisfactionLevels, satisfactionData, surveyColors),
                 borderData: FlBorderData(
@@ -66,11 +66,11 @@ class ComparisonChart extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
-                              satisfactionLevels[value.toInt()],
-                              style: const TextStyle(fontSize: 10),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                            ),
+                                satisfactionLevels[value.toInt()],
+                                style: const TextStyle(fontSize: 10),
+                                textAlign: TextAlign.center,
+                                maxLines: 2
+                              ),
                           );
                         }
                         return const Text('');
@@ -84,17 +84,14 @@ class ComparisonChart extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         // Only show integer values
                         if (value % 1 == 0) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Text(
+                          return Text(
                               value.toInt().toString(),
                               style: const TextStyle(fontSize: 10),
-                            ),
-                          );
+                            );
                         }
                         return const Text('');
                       },
-                      reservedSize: 40,
+                      reservedSize: 10,
                     ),
                   ),
                   rightTitles: const AxisTitles(
@@ -130,7 +127,7 @@ class ComparisonChart extends StatelessWidget {
         bars.add(
           BarChartRodData(
             toY: count.toDouble(),
-            width: 16,
+            width: 10,
             color: color,
             borderRadius: BorderRadius.circular(4),
             backDrawRodData: BackgroundBarChartRodData(
@@ -172,7 +169,7 @@ class ComparisonChart extends StatelessWidget {
   }
 
   Widget _buildLegend(Map<String, Color> colors) {
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: colors.entries.map((entry) {
         return Padding(
@@ -184,13 +181,14 @@ class ComparisonChart extends StatelessWidget {
                 height: 16,
                 decoration: BoxDecoration(
                   color: entry.value,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
               const SizedBox(width: 6),
               Text(
                 entry.key,
                 style: const TextStyle(fontSize: 12),
+                
               ),
             ],
           ),
