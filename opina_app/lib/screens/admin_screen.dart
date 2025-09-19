@@ -1,10 +1,12 @@
 // lib/screens/admin_screen.dart
 import 'package:flutter/material.dart';
 import 'package:opina_app/screens/dashboards_screen.dart';
+
 import 'package:opina_app/screens/survey_results_screen.dart';
 import 'package:opina_app/screens/survey_results_screen1.dart';
 import 'package:opina_app/screens/survey_results_screen2.dart';
 import 'package:opina_app/services/token_store.dart' show TokenStore;
+
 import 'login_screen.dart'; // Importamos la pantalla de login
 
 class AdminScreen extends StatefulWidget {
@@ -222,7 +224,7 @@ class AdminScreenState extends State<AdminScreen> {
                         ),
                       );
                       },
-                    ),
+                    
                   ],
                 ),
               ),
