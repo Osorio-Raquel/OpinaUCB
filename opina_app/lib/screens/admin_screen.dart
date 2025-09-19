@@ -4,7 +4,7 @@ import 'package:opina_app/screens/survey_results_screen.dart';
 import 'package:opina_app/screens/survey_results_screen1.dart';
 import 'package:opina_app/screens/survey_results_screen2.dart';
 import 'package:opina_app/services/token_store.dart' show TokenStore;
-import 'login_screen.dart'; // Importamos la pantalla de login
+import 'login_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -13,196 +13,425 @@ class AdminScreen extends StatefulWidget {
   AdminScreenState createState() => AdminScreenState();
 }
 
-class AdminScreenState extends State<AdminScreen> {
-  int _selectedIndex =
-      0; // Índice para controlar la pestaña seleccionada en la barra inferior
+class AdminScreenState extends State<AdminScreen>
+    with SingleTickerProviderStateMixin {
+  int _selectedIndex = 0;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  bool _isDrawerOpen = false;
 
-  // Método para cambiar el índice seleccionado en la barra de navegación inferior
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  // Función para cerrar sesión y redirigir al login
-  void _logout() {
-    // Aquí podrías agregar lógica para limpiar el token de autenticación
-    // si estás usando shared_preferences o similar
-
-    // Navegar de regreso a la pantalla de login (reemplaza la pila de navegación)
+  void _logout() async {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const LoginScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 600),
+      ),
     );
+  }
+
+  void _toggleDrawer() {
+    setState(() {
+      _isDrawerOpen = !_isDrawerOpen;
+    });
+    if (_isDrawerOpen) {
+      Scaffold.of(context).openEndDrawer();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100], // Fondo gris claro
-      appBar: AppBar(
-        backgroundColor: Colors.blue[900], // Azul oscuro
-        title: const Text(
-          'Panel de Administración',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: ScaleTransition(scale: _scaleAnimation, child: child),
+        );
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFD32F2F),
+          title: const Text(
+            'Panel de Administración',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.white),
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications),
+              onPressed: () {
+                // Acción para notificaciones
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.exit_to_app),
+              onPressed: _logout,
+              tooltip: 'Cerrar Sesión',
+            ),
+          ],
         ),
-        centerTitle: true, // Centrar el título
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // Color blanco para íconos
-        automaticallyImplyLeading:
-            false, // Elimina el botón de retroceso por defecto
-        actions: [
-          // Botón de notificaciones
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Acción para notificaciones
-            },
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)],
+            ),
           ),
-          // Botón para cerrar sesión
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: _logout, // Conectado a la función de cerrar sesión
-            tooltip: 'Cerrar Sesión',
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título de bienvenida
+                const Text(
+                  'Bienvenido Administrador',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Subtítulo descriptivo
+                const Text(
+                  'Gestiona las encuestas y visualiza los resultados',
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                ),
+                const SizedBox(height: 30),
+
+                // Grid de botones principales
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _buildAdminButton(
+                        title: 'Calidad Académica',
+                        icon: Icons.school,
+                        color: const Color(0xFFD32F2F),
+                        onTap: () async {
+                          final token = await TokenStore.get();
+                          if (token != null) {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        SurveyResultsScreen(token: token),
+                                transitionsBuilder:
+                                    (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                    ) {
+                                      return SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(1.0, 0.0),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: child,
+                                      );
+                                    },
+                                transitionDuration: const Duration(
+                                  milliseconds: 500,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      _buildAdminButton(
+                        title: 'Infraestructura y Servicios',
+                        icon: Icons.business_center,
+                        color: const Color(0xFFC2185B),
+                        onTap: () async {
+                          final token = await TokenStore.get();
+                          if (token != null) {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        SurveyResultsScreen2(token: token),
+                                transitionsBuilder:
+                                    (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                    ) {
+                                      return SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(1.0, 0.0),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: child,
+                                      );
+                                    },
+                                transitionDuration: const Duration(
+                                  milliseconds: 500,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      _buildAdminButton(
+                        title: 'Experiencia y Apoyo',
+                        icon: Icons.people,
+                        color: const Color(0xFF7B1FA2),
+                        onTap: () async {
+                          final token = await TokenStore.get();
+                          if (token != null) {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        SurveyResultsScreen1(token: token),
+                                transitionsBuilder:
+                                    (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                    ) {
+                                      return SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(1.0, 0.0),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: child,
+                                      );
+                                    },
+                                transitionDuration: const Duration(
+                                  milliseconds: 500,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      _buildAdminButton(
+                        title: 'Dashboard',
+                        icon: Icons.bar_chart,
+                        color: const Color(0xFF512DA8),
+                        onTap: () {
+                          // Acción para Dashboard
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Tarjeta de estadísticas rápidas
+                _buildStatsCard(),
+              ],
+            ),
           ),
-        ],
+        ),
+
+        // Barra de navegación inferior
+        bottomNavigationBar: _buildBottomNavBar(),
+
+        // Drawer lateral derecho
+        endDrawer: _buildDrawer(),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(
-          20.0,
-        ), // Espaciado alrededor del contenido
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Alinear contenido a la izquierda
-          children: [
-            // Título de bienvenida
-            const Text(
-              'Bienvenido Administrador',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 13, 95, 219),
-              ),
+    );
+  }
+
+  Widget _buildAdminButton({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color, Color.lerp(color, Colors.black, 0.2)!],
             ),
-            const SizedBox(height: 8), // Espaciado
-            // Subtítulo descriptivo
-            const Text(
-              'Gestiona las encuestas y visualiza los resultados',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 30), // Espaciado
-            // Grid de botones principales con 2 columnas
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2, // 2 columnas
-                crossAxisSpacing: 20, // Espaciado horizontal entre elementos
-                mainAxisSpacing: 20, // Espaciado vertical entre elementos
-                childAspectRatio: 1.2, // Relación aspecto ancho/alto
-                children: [
-                  // Botón 1: Calidad Académica
-                  _buildAdminButton(
-                    title: 'Calidad Académica',
-                    icon: Icons.school,
-                    color: Colors.blue[700]!,
-                    onTap: () async {
-                      final token = await TokenStore.get();
-                      if (token != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SurveyResultsScreen(token: token),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-
-                  // Botón 2: Infraestructura y Servicios
-                  _buildAdminButton(
-                    title: 'Infraestructura y Servicios',
-                    icon: Icons.business_center,
-                    color: Colors.green[700]!,
-                    onTap: () async {
-                      final token = await TokenStore.get();
-                      if (token != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SurveyResultsScreen2(token: token),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-
-                  // Botón 3: Experiencia y Apoyo al Estudiante
-                  _buildAdminButton(
-                    title: 'Experiencia y Apoyo',
-                    icon: Icons.people,
-                    color: Colors.orange[700]!,
-                    onTap: () async {
-                      final token = await TokenStore.get();
-                      if (token != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SurveyResultsScreen1(token: token),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-
-                  // Botón 4: Dashboard
-                  _buildAdminButton(
-                    title: 'Dashboard',
-                    icon: Icons.bar_chart,
-                    color: Colors.purple[700]!,
-                    onTap: () {
-                      // Acción para Dashboard
-                    },
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-            ),
-
-            // Tarjeta de estadísticas rápidas
-            Card(
-              elevation: 4, // Sombra
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), // Bordes redondeados
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceAround, // Espaciado uniforme
-                  children: [
-                    _buildStatItem(
-                      'Encuestas Totales',
-                      '1,245',
-                      Icons.assignment,
-                    ),
-                    _buildStatItem('Usuarios Activos', '856', Icons.people),
-                    _buildStatItem(
-                      'Tasa de Respuesta',
-                      '78%',
-                      Icons.trending_up,
-                    ),
-                  ],
+            ],
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 32, color: Colors.white),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsCard() {
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white.withOpacity(0.95),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatItem(
+              'Encuestas Totales',
+              '1,245',
+              Icons.assignment,
+              const Color(0xFFD32F2F),
+            ),
+            _buildStatItem(
+              'Usuarios Activos',
+              '856',
+              Icons.people,
+              const Color(0xFFC2185B),
+            ),
+            _buildStatItem(
+              'Tasa de Respuesta',
+              '78%',
+              Icons.trending_up,
+              const Color(0xFF7B1FA2),
             ),
           ],
         ),
       ),
+    );
+  }
 
-      // Barra de navegación inferior con 3 opciones
-      bottomNavigationBar: BottomNavigationBar(
+  Widget _buildStatItem(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 10, color: Colors.black54),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
@@ -214,31 +443,53 @@ class AdminScreenState extends State<AdminScreen> {
             label: 'Configuración',
           ),
         ],
-        currentIndex: _selectedIndex, // Índice actual seleccionado
-        selectedItemColor: Colors.blue[800], // Color del ítem seleccionado
-        onTap: _onItemTapped, // Manejar taps
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFFD32F2F),
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
       ),
+    );
+  }
 
-      // Drawer lateral derecho (menú deslizable)
-      endDrawer: Drawer(
+  Widget _buildDrawer() {
+    return Drawer(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(left: Radius.circular(20)),
+      ),
+      child: Container(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.horizontal(left: Radius.circular(20)),
+        ),
         child: ListView(
-          padding: EdgeInsets.zero, // Sin padding
+          padding: EdgeInsets.zero,
           children: [
-            // Encabezado del drawer con información del usuario
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue[900], // Fondo azul oscuro
+              decoration: const BoxDecoration(
+                color: Color(0xFFD32F2F),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 30,
-                    child: Icon(Icons.person, color: Colors.blue, size: 30),
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: Color(0xFFD32F2F),
+                      size: 30,
+                    ),
                   ),
-                  SizedBox(height: 10),
-                  Text(
+                  const SizedBox(height: 15),
+                  const Text(
                     'Administrador',
                     style: TextStyle(
                       color: Colors.white,
@@ -246,120 +497,39 @@ class AdminScreenState extends State<AdminScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'admin@ucb.edu',
                     style: TextStyle(color: Colors.white70),
                   ),
                 ],
               ),
             ),
-            // Opción de Inicio
             ListTile(
-              leading: const Icon(Icons.home),
+              leading: const Icon(Icons.home, color: Color(0xFFD32F2F)),
               title: const Text('Inicio'),
               onTap: () {
-                Navigator.pop(context); // Cerrar el drawer
+                Navigator.pop(context);
               },
             ),
-            // Opción de Configuración
             ListTile(
-              leading: const Icon(Icons.settings),
+              leading: const Icon(Icons.settings, color: Color(0xFFD32F2F)),
               title: const Text('Configuración'),
               onTap: () {
-                Navigator.pop(context); // Cerrar el drawer
+                Navigator.pop(context);
               },
             ),
-            const Divider(), // Línea divisoria
-            // Opción de Cerrar Sesión
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
               title: const Text(
                 'Cerrar Sesión',
                 style: TextStyle(color: Colors.red),
               ),
-              onTap: _logout, // Función de cerrar sesión
+              onTap: _logout,
             ),
           ],
         ),
       ),
-    );
-  }
-
-  // Método auxiliar para construir botones del panel de administración
-  Widget _buildAdminButton({
-    required String title,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 4, // Sombra
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12), // Bordes redondeados
-      ),
-      child: InkWell(
-        onTap: onTap, // Acción al hacer tap
-        borderRadius: BorderRadius.circular(
-          12,
-        ), // Bordes redondeados para el efecto de tap
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12), // Bordes redondeados
-            color: color, // Color de fondo
-          ),
-          padding: const EdgeInsets.all(16), // Espaciado interno
-          child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center, // Centrar contenido verticalmente
-            children: [
-              Icon(
-                icon,
-                size: 40,
-                color: Colors.white, // Ícono blanco
-              ),
-              const SizedBox(height: 10), // Espaciado
-              Text(
-                title,
-                textAlign: TextAlign.center, // Texto centrado
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Método auxiliar para construir ítems de estadísticas
-  Widget _buildStatItem(String title, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: Colors.blue[700], // Color azul para el ícono
-          size: 30,
-        ),
-        const SizedBox(height: 8), // Espaciado
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue[900], // Color azul oscuro para el valor
-          ),
-        ),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey, // Color gris para el título
-          ),
-        ),
-      ],
     );
   }
 }
