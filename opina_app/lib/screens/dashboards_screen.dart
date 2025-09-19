@@ -614,7 +614,7 @@ double getAverageSatisfactionForCalidad() {
     final answerDistribution = getAnswerDistribution(selectedQuestionIndex);
 
     final comparisonData = prepareSatisfactionComparisonData(_calidadData, _experienciaData, _infraestructuraData);
-    print(_convertToPercentages(answerDistribution));
+    
     if (_isLoading) {
       return Scaffold(
         body: Center(

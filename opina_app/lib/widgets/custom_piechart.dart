@@ -45,7 +45,7 @@ class CustomPiechart extends StatelessWidget {
               ),
             ),
             
-            if (showLegend) const SizedBox(width: 80),
+            if (showLegend) const SizedBox(width: 20),
             
             // Legend
             if (showLegend)
