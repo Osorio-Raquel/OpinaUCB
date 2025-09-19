@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:opina_app/models/calidad_academica_model.dart';
@@ -7,6 +6,9 @@ import 'package:opina_app/models/experiencia_model.dart';
 import 'package:opina_app/models/infraestructura_model.dart';
 import 'package:opina_app/services/api_service.dart';
 import 'package:opina_app/services/token_store.dart';
+import 'package:opina_app/widgets/cards.dart';
+import 'package:opina_app/widgets/comparison_chart.dart';
+import 'package:opina_app/widgets/custom_piechart.dart';
 
 class DashboardsScreen extends StatefulWidget {
   const DashboardsScreen({super.key});
@@ -460,6 +462,19 @@ double getAverageSatisfactionForCalidad() {
     return distribution;
   }
 
+  Map<String, double> _convertToPercentages(Map<String, int> distribution) {
+    Map<String, double> percentages = {};
+    switch (selectedSurveyType) {
+      case 'Calidad Académica':
+        percentages = distribution.map((key, value) => MapEntry(key, (value / _calidadData.length * 100).roundToDouble()));
+      case 'Experiencia':
+        percentages = distribution.map((key, value) => MapEntry(key, (value / _experienciaData.length * 100).roundToDouble()));
+      case 'Infraestructura':
+        percentages = distribution.map((key, value) => MapEntry(key, (value / _infraestructuraData.length * 100).roundToDouble()));
+    }
+    return percentages;
+}
+
   List<String> getQuestionLabels() {
     switch (selectedSurveyType) {
       case 'Calidad Académica':
@@ -516,6 +531,75 @@ double getAverageSatisfactionForCalidad() {
     }
   }
 
+  Map<String, int> _getCalidadSatisfactionData(List<CalidadAcademicaModel> surveys) {
+    final counts = {
+      'Muy satisfecho': 0,
+      'Satisfecho': 0,
+      'Neutral': 0,
+      'Insatisfecho': 0,
+      'Muy insatisfecho': 0,
+    };
+
+    for (var survey in surveys) {
+      final answer = survey.pregunta6SatisfaccionGeneral;
+      if (counts.containsKey(answer)) {
+        counts[answer] = counts[answer]! + 1;
+      }
+    }
+
+    return counts;
+  }
+
+  Map<String, int> _getExperienciaSatisfactionData(List<ExperienciaModel> surveys) {
+    final counts = {
+      'Muy satisfecho': 0,
+      'Satisfecho': 0,
+      'Neutral': 0,
+      'Insatisfecho': 0,
+      'Muy insatisfecho': 0,
+    };
+
+    for (var survey in surveys) {
+      final answer = survey.pregunta6SatisfaccionGeneral;
+      if (counts.containsKey(answer)) {
+        counts[answer] = counts[answer]! + 1;
+      }
+    }
+
+    return counts;
+  }
+
+  Map<String, int> _getInfraestructuraSatisfactionData(List<InfraestructuraModel> surveys) {
+    final counts = {
+      'Muy satisfecho': 0,
+      'Satisfecho': 0,
+      'Neutral': 0,
+      'Insatisfecho': 0,
+      'Muy insatisfecho': 0,
+    };
+
+    for (var survey in surveys) {
+      final answer = survey.pregunta6SatisfaccionGeneral;
+      if (counts.containsKey(answer)) {
+        counts[answer] = counts[answer]! + 1;
+      }
+    }
+
+    return counts;
+  }
+
+  Map<String, Map<String, int>> prepareSatisfactionComparisonData(
+    List<CalidadAcademicaModel> calidadSurveys,
+    List<ExperienciaModel> experienciaSurveys,
+    List<InfraestructuraModel> infraestructuraSurveys,
+  ) {
+    return {
+      'Calidad Académica': _getCalidadSatisfactionData(calidadSurveys),
+      'Experiencia': _getExperienciaSatisfactionData(experienciaSurveys),
+      'Infraestructura': _getInfraestructuraSatisfactionData(infraestructuraSurveys),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final calidadAvg = getAverageSatisfactionForCalidad();
@@ -529,6 +613,8 @@ double getAverageSatisfactionForCalidad() {
     final suggestions = getSuggestions();
     final answerDistribution = getAnswerDistribution(selectedQuestionIndex);
 
+    final comparisonData = prepareSatisfactionComparisonData(_calidadData, _experienciaData, _infraestructuraData);
+    print(_convertToPercentages(answerDistribution));
     if (_isLoading) {
       return Scaffold(
         body: Center(
@@ -576,6 +662,13 @@ double getAverageSatisfactionForCalidad() {
                   child: Column(
                     children: [
                       SizedBox(height: 20),
+                      Cards(
+                        totalSurveys: _calidadData.length + _experienciaData.length + _infraestructuraData.length,
+                        calidadSurveys: _calidadData.length,
+                        experienciaSurveys: _experienciaData.length,
+                        infraestructuraSurveys: _infraestructuraData.length,
+                      ),
+                      SizedBox(height: 25),
                       Text(
                         'Resumen de Satisfacción General',
                         style: Theme.of(context).textTheme.titleLarge,
@@ -587,6 +680,7 @@ double getAverageSatisfactionForCalidad() {
                       const SizedBox(height: 15),
                       _buildBarItem('Infraestructura', infraestructuraAvg, maxValue, Colors.orangeAccent),
                       const SizedBox(height: 30),
+                      ComparisonChart(satisfactionData: comparisonData),
                       const Divider(),
                       const SizedBox(height: 20),
                       Text(
@@ -719,7 +813,7 @@ double getAverageSatisfactionForCalidad() {
                       const SizedBox(height: 20),
 
                       Text(
-                        'Distribución de respuestas:',
+                        'Distribución de respuestas',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 14),
@@ -749,7 +843,19 @@ double getAverageSatisfactionForCalidad() {
                         );
                       }).toList(),
 
-                      SizedBox(height: 20,),
+                      SizedBox(height: 50),
+
+                      CustomPiechart(
+                        sections: CustomPiechart.createSectionsFromMap(
+                          _convertToPercentages(answerDistribution),
+                        ),
+                        data: _convertToPercentages(answerDistribution),
+                        title: 'Distribución porcentual',
+                        chartHeight: 250,
+                        chartWidth: 200,
+                        showLegend: true,
+                      ),
+                      SizedBox(height: 30),
                       Divider(),
                       SizedBox(height: 20),
 
