@@ -1,5 +1,6 @@
 // lib/screens/admin_screen.dart
 import 'package:flutter/material.dart';
+import 'package:opina_app/screens/dashboards_screen.dart';
 import 'login_screen.dart'; // Importamos la pantalla de login
 
 class AdminScreen extends StatefulWidget {
@@ -142,11 +143,16 @@ class AdminScreenState extends State<AdminScreen> {
                     
                     // Botón 4: Dashboard
                     _buildAdminButton(
-                      title: 'Dashboard',
+                      title: 'Dashboards',
                       icon: Icons.bar_chart,
                       color: Colors.purple[700]!,
                       onTap: () {
-                        // Acción para Dashboard
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DashboardsScreen(),
+                        ),
+                      );
                       },
                     ),
                   ],
