@@ -1,5 +1,7 @@
 // lib/screens/admin_screen.dart
 import 'package:flutter/material.dart';
+import 'package:opina_app/screens/survey_results_screen.dart';
+import 'package:opina_app/services/token_store.dart' show TokenStore;
 import 'login_screen.dart'; // Importamos la pantalla de login
 
 class AdminScreen extends StatefulWidget {
@@ -10,7 +12,8 @@ class AdminScreen extends StatefulWidget {
 }
 
 class AdminScreenState extends State<AdminScreen> {
-  int _selectedIndex = 0; // Índice para controlar la pestaña seleccionada en la barra inferior
+  int _selectedIndex =
+      0; // Índice para controlar la pestaña seleccionada en la barra inferior
 
   // Método para cambiar el índice seleccionado en la barra de navegación inferior
   void _onItemTapped(int index) {
@@ -23,7 +26,7 @@ class AdminScreenState extends State<AdminScreen> {
   void _logout() {
     // Aquí podrías agregar lógica para limpiar el token de autenticación
     // si estás usando shared_preferences o similar
-    
+
     // Navegar de regreso a la pantalla de login (reemplaza la pila de navegación)
     Navigator.pushReplacement(
       context,
@@ -39,14 +42,14 @@ class AdminScreenState extends State<AdminScreen> {
         backgroundColor: Colors.blue[900], // Azul oscuro
         title: const Text(
           'Panel de Administración',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true, // Centrar el título
-        iconTheme: const IconThemeData(color: Colors.white), // Color blanco para íconos
-        automaticallyImplyLeading: false, // Elimina el botón de retroceso por defecto
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // Color blanco para íconos
+        automaticallyImplyLeading:
+            false, // Elimina el botón de retroceso por defecto
         actions: [
           // Botón de notificaciones
           IconButton(
@@ -64,9 +67,12 @@ class AdminScreenState extends State<AdminScreen> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0), // Espaciado alrededor del contenido
+        padding: const EdgeInsets.all(
+          20.0,
+        ), // Espaciado alrededor del contenido
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Alinear contenido a la izquierda
+          crossAxisAlignment:
+              CrossAxisAlignment.start, // Alinear contenido a la izquierda
           children: [
             // Título de bienvenida
             const Text(
@@ -81,13 +87,9 @@ class AdminScreenState extends State<AdminScreen> {
             // Subtítulo descriptivo
             const Text(
               'Gestiona las encuestas y visualiza los resultados',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 30), // Espaciado
-            
             // Grid de botones principales con 2 columnas
             Expanded(
               child: GridView.count(
@@ -101,11 +103,20 @@ class AdminScreenState extends State<AdminScreen> {
                     title: 'Calidad Académica',
                     icon: Icons.school,
                     color: Colors.blue[700]!,
-                    onTap: () {
-                      // Acción para Calidad Académica
+                    onTap: () async {
+                      final token = await TokenStore.get();
+                      if (token != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SurveyResultsScreen(token: token),
+                          ),
+                        );
+                      }
                     },
                   ),
-                  
+
                   // Botón 2: Infraestructura y Servicios
                   _buildAdminButton(
                     title: 'Infraestructura y Servicios',
@@ -115,7 +126,7 @@ class AdminScreenState extends State<AdminScreen> {
                       // Acción para Infraestructura y Servicios
                     },
                   ),
-                  
+
                   // Botón 3: Experiencia y Apoyo al Estudiante
                   _buildAdminButton(
                     title: 'Experiencia y Apoyo',
@@ -125,7 +136,7 @@ class AdminScreenState extends State<AdminScreen> {
                       // Acción para Experiencia y Apoyo al Estudiante
                     },
                   ),
-                  
+
                   // Botón 4: Dashboard
                   _buildAdminButton(
                     title: 'Dashboard',
@@ -138,7 +149,7 @@ class AdminScreenState extends State<AdminScreen> {
                 ],
               ),
             ),
-            
+
             // Tarjeta de estadísticas rápidas
             Card(
               elevation: 4, // Sombra
@@ -148,11 +159,20 @@ class AdminScreenState extends State<AdminScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround, // Espaciado uniforme
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceAround, // Espaciado uniforme
                   children: [
-                    _buildStatItem('Encuestas Totales', '1,245', Icons.assignment),
+                    _buildStatItem(
+                      'Encuestas Totales',
+                      '1,245',
+                      Icons.assignment,
+                    ),
                     _buildStatItem('Usuarios Activos', '856', Icons.people),
-                    _buildStatItem('Tasa de Respuesta', '78%', Icons.trending_up),
+                    _buildStatItem(
+                      'Tasa de Respuesta',
+                      '78%',
+                      Icons.trending_up,
+                    ),
                   ],
                 ),
               ),
@@ -160,14 +180,11 @@ class AdminScreenState extends State<AdminScreen> {
           ],
         ),
       ),
-      
+
       // Barra de navegación inferior con 3 opciones
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
             label: 'Reportes',
@@ -198,11 +215,7 @@ class AdminScreenState extends State<AdminScreen> {
                   CircleAvatar(
                     backgroundColor: Colors.white,
                     radius: 30,
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.blue,
-                      size: 30,
-                    ),
+                    child: Icon(Icons.person, color: Colors.blue, size: 30),
                   ),
                   SizedBox(height: 10),
                   Text(
@@ -215,9 +228,7 @@ class AdminScreenState extends State<AdminScreen> {
                   ),
                   Text(
                     'admin@ucb.edu',
-                    style: TextStyle(
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(color: Colors.white70),
                   ),
                 ],
               ),
@@ -242,7 +253,10 @@ class AdminScreenState extends State<AdminScreen> {
             // Opción de Cerrar Sesión
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
-              title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Cerrar Sesión',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: _logout, // Función de cerrar sesión
             ),
           ],
@@ -265,7 +279,9 @@ class AdminScreenState extends State<AdminScreen> {
       ),
       child: InkWell(
         onTap: onTap, // Acción al hacer tap
-        borderRadius: BorderRadius.circular(12), // Bordes redondeados para el efecto de tap
+        borderRadius: BorderRadius.circular(
+          12,
+        ), // Bordes redondeados para el efecto de tap
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12), // Bordes redondeados
@@ -273,7 +289,8 @@ class AdminScreenState extends State<AdminScreen> {
           ),
           padding: const EdgeInsets.all(16), // Espaciado interno
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido verticalmente
+            mainAxisAlignment:
+                MainAxisAlignment.center, // Centrar contenido verticalmente
             children: [
               Icon(
                 icon,
