@@ -10,25 +10,33 @@ class AdminScreen extends StatefulWidget {
 }
 
 class AdminScreenState extends State<AdminScreen> {
-  int _selectedIndex = 0; // Índice para controlar la pestaña seleccionada en la barra inferior
-
-  // Método para cambiar el índice seleccionado en la barra de navegación inferior
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   // Función para cerrar sesión y redirigir al login
   void _logout() {
-    // Aquí podrías agregar lógica para limpiar el token de autenticación
-    // si estás usando shared_preferences o similar
-    
     // Navegar de regreso a la pantalla de login (reemplaza la pila de navegación)
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
+  }
+
+  // Simular datos que se actualizarán al deslizar
+  int _surveyCount = 1245;
+  bool _isRefreshing = false;
+
+  // Función que se ejecuta al deslizar hacia abajo
+  Future<void> _handleRefresh() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    // Simular una operación de red o base de datos que tarda 2 segundos
+    await Future.delayed(const Duration(seconds: 2));
+    
+    // Actualizar los datos (en una app real, aquí harías una llamada API)
+    setState(() {
+      _surveyCount += 5; // Simular nuevos datos
+      _isRefreshing = false;
+    });
   }
 
   @override
@@ -63,123 +71,118 @@ class AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0), // Espaciado alrededor del contenido
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Alinear contenido a la izquierda
-          children: [
-            // Título de bienvenida
-            const Text(
-              'Bienvenido Administrador',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 13, 95, 219),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh, // Función que se ejecuta al deslizar
+        color: Colors.blue[900], // Color del indicador de carga
+        backgroundColor: Colors.white, // Fondo del indicador
+        displacement: 40, // Distancia desde la parte superior
+        edgeOffset: 0, // Desplazamiento desde el borde superior
+        child: Padding(
+          padding: const EdgeInsets.all(20.0), // Espaciado alrededor del contenido
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Alinear contenido a la izquierda
+            children: [
+              // Título de bienvenida
+              const Text(
+                'Bienvenido Administrador',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 13, 95, 219),
+                ),
               ),
-            ),
-            const SizedBox(height: 8), // Espaciado
-            // Subtítulo descriptivo
-            const Text(
-              'Gestiona las encuestas y visualiza los resultados',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
+              const SizedBox(height: 8), // Espaciado
+              // Subtítulo descriptivo
+              const Text(
+                'Gestiona las encuestas y visualiza los resultados',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            const SizedBox(height: 30), // Espaciado
-            
-            // Grid de botones principales con 2 columnas
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2, // 2 columnas
-                crossAxisSpacing: 20, // Espaciado horizontal entre elementos
-                mainAxisSpacing: 20, // Espaciado vertical entre elementos
-                childAspectRatio: 1.2, // Relación aspecto ancho/alto
-                children: [
-                  // Botón 1: Calidad Académica
-                  _buildAdminButton(
-                    title: 'Calidad Académica',
-                    icon: Icons.school,
-                    color: Colors.blue[700]!,
-                    onTap: () {
-                      // Acción para Calidad Académica
-                    },
-                  ),
-                  
-                  // Botón 2: Infraestructura y Servicios
-                  _buildAdminButton(
-                    title: 'Infraestructura y Servicios',
-                    icon: Icons.business_center,
-                    color: Colors.green[700]!,
-                    onTap: () {
-                      // Acción para Infraestructura y Servicios
-                    },
-                  ),
-                  
-                  // Botón 3: Experiencia y Apoyo al Estudiante
-                  _buildAdminButton(
-                    title: 'Experiencia y Apoyo',
-                    icon: Icons.people,
-                    color: Colors.orange[700]!,
-                    onTap: () {
-                      // Acción para Experiencia y Apoyo al Estudiante
-                    },
-                  ),
-                  
-                  // Botón 4: Dashboard
-                  _buildAdminButton(
-                    title: 'Dashboard',
-                    icon: Icons.bar_chart,
-                    color: Colors.purple[700]!,
-                    onTap: () {
-                      // Acción para Dashboard
-                    },
-                  ),
-                ],
-              ),
-            ),
-            
-            // Tarjeta de estadísticas rápidas
-            Card(
-              elevation: 4, // Sombra
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), // Bordes redondeados
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround, // Espaciado uniforme
+              const SizedBox(height: 30), // Espaciado
+              
+              // Grid de botones principales con 2 columnas
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2, // 2 columnas
+                  crossAxisSpacing: 20, // Espaciado horizontal entre elementos
+                  mainAxisSpacing: 20, // Espaciado vertical entre elementos
+                  childAspectRatio: 1.2, // Relación aspecto ancho/alto
                   children: [
-                    _buildStatItem('Encuestas Totales', '1,245', Icons.assignment),
-                    _buildStatItem('Usuarios Activos', '856', Icons.people),
-                    _buildStatItem('Tasa de Respuesta', '78%', Icons.trending_up),
+                    // Botón 1: Calidad Académica
+                    _buildAdminButton(
+                      title: 'Calidad Académica',
+                      icon: Icons.school,
+                      color: Colors.blue[700]!,
+                      onTap: () {
+                        // Acción para Calidad Académica
+                      },
+                    ),
+                    
+                    // Botón 2: Infraestructura y Servicios
+                    _buildAdminButton(
+                      title: 'Infraestructura y Servicios',
+                      icon: Icons.business_center,
+                      color: Colors.green[700]!,
+                      onTap: () {
+                        // Acción para Infraestructura y Servicios
+                      },
+                    ),
+                    
+                    // Botón 3: Experiencia y Apoyo al Estudiante
+                    _buildAdminButton(
+                      title: 'Experiencia y Apoyo',
+                      icon: Icons.people,
+                      color: Colors.orange[700]!,
+                      onTap: () {
+                        // Acción para Experiencia y Apoyo al Estudiante
+                      },
+                    ),
+                    
+                    // Botón 4: Dashboard
+                    _buildAdminButton(
+                      title: 'Dashboard',
+                      icon: Icons.bar_chart,
+                      color: Colors.purple[700]!,
+                      onTap: () {
+                        // Acción para Dashboard
+                      },
+                    ),
                   ],
                 ),
               ),
-            ),
-          ],
+              
+              // Tarjeta de estadísticas rápidas (solo Encuestas Totales)
+              Card(
+                elevation: 4, // Sombra
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround, // Espaciado uniforme
+                    children: [
+                      _buildStatItem('Encuestas Totales', '$_surveyCount', Icons.assignment),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Indicador de carga cuando se está actualizando
+              if (_isRefreshing)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
-      
-      // Barra de navegación inferior con 3 opciones
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Reportes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Configuración',
-          ),
-        ],
-        currentIndex: _selectedIndex, // Índice actual seleccionado
-        selectedItemColor: Colors.blue[800], // Color del ítem seleccionado
-        onTap: _onItemTapped, // Manejar taps
       ),
 
       // Drawer lateral derecho (menú deslizable)
